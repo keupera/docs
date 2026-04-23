@@ -17,32 +17,40 @@
             "group": "Getting started",
             "pages": [
               "index",
-              "quickstart",
-              "development"
+              "quickstart"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Core Features",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "features/dashboard",
+              "features/analytics"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Research",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+              "features/keywords",
+              "features/backlinks",
+              "features/competitors"
             ]
           },
           {
-            "group": "AI tools",
+            "group": "Content",
             "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "features/calendar",
+              "features/editor",
+              "features/focus-tools"
+            ]
+          },
+          {
+            "group": "AI Studio (Beta)",
+            "pages": [
+              "features/brand-radar",
+              "features/entity-layer",
+              "features/authority",
+              "features/prompt-engine",
+              "features/ai-funnel"
             ]
           }
         ]
