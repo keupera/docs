@@ -1,0 +1,269 @@
+---
+title: "Backlinks"
+description: "Manage backlink campaigns, opportunities, and outreach email generation and sending."
+---
+
+Run backlink research campaigns, manage opportunities discovered for each campaign, and generate or send personalized outreach emails.
+
+**Function**: `public-api-backlinks`
+**Base path**: `https://app.keupera.com/api/v1/public-api-backlinks`
+
+## List campaigns
+
+```http
+GET /campaigns
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `website_id` | UUID | Target website |
+
+### Response
+
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "keyword": "seo tools",
+      "niche": "Digital Marketing",
+      "status": "active",
+      "language": "en",
+      "general_strategies": [],
+      "websites": { "url": "https://example.com" },
+      "created_at": "2024-01-15T10:00:00Z"
+    }
+  ]
+}
+```
+
+## Create campaign
+
+```http
+POST /campaigns
+```
+
+### Request body
+
+```json
+{
+  "website_id": "uuid",
+  "keyword": "seo tools",
+  "niche": "Digital Marketing",
+  "language": "en"
+}
+```
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `keyword` | Yes | Target keyword for backlink research |
+| `niche` | Yes | Industry/niche context |
+| `language` | No | Language code (defaults to website language) |
+
+### Response (201)
+
+```json
+{
+  "data": {
+    "id": "uuid",
+    "keyword": "seo tools",
+    "niche": "Digital Marketing",
+    "status": "active"
+  }
+}
+```
+
+<Note>
+  Backlink opportunity research is automatically triggered in the background once a campaign is created.
+</Note>
+
+## Get campaign details
+
+```http
+GET /campaigns/:id
+```
+
+### Response
+
+```json
+{
+  "data": {
+    "id": "uuid",
+    "keyword": "seo tools",
+    "niche": "Digital Marketing",
+    "general_strategies": [],
+    "websites": { "url": "https://example.com" }
+  }
+}
+```
+
+## List campaign opportunities
+
+```http
+GET /campaigns/:id/opportunities
+```
+
+### Response
+
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "url": "https://target-site.com/article",
+      "title": "Top SEO Tools Review",
+      "strategy": "guest_post",
+      "type": "blog",
+      "relevance_score": 85,
+      "domain_authority": 45,
+      "status": "new",
+      "contact_email": null,
+      "outreach_status": null,
+      "notes": null
+    }
+  ]
+}
+```
+
+## Get strategic recommendations
+
+```http
+GET /campaigns/:id/recommendations
+```
+
+### Response
+
+```json
+{
+  "data": {
+    "campaign_id": "uuid",
+    "strategies": [
+      {
+        "title": "Guest Posting on Authority Blogs",
+        "description": "Write high-quality guest posts...",
+        "difficulty": "medium",
+        "impact": "high"
+      }
+    ]
+  }
+}
+```
+
+## Get a single opportunity
+
+```http
+GET /opportunities/:id
+```
+
+### Response
+
+```json
+{
+  "data": {
+    "id": "uuid",
+    "url": "https://target-site.com/article",
+    "title": "Top SEO Tools Review",
+    "strategy": "guest_post",
+    "relevance_score": 85,
+    "status": "new",
+    "contact_email": null,
+    "backlink_campaigns": {
+      "keyword": "seo tools",
+      "websites": { "url": "https://example.com" }
+    }
+  }
+}
+```
+
+## Update an opportunity
+
+```http
+PATCH /opportunities/:id
+```
+
+### Request body
+
+```json
+{
+  "status": "contacted",
+  "contact_email": "editor@target-site.com",
+  "contact_name": "John Doe",
+  "outreach_status": "email_sent",
+  "notes": "Sent initial outreach on Jan 15"
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `status` | string | Opportunity status |
+| `contact_email` | string | Contact email address |
+| `contact_name` | string | Contact person name |
+| `outreach_status` | string | Outreach progress status |
+| `notes` | string | Free-text notes |
+
+### Response
+
+```json
+{
+  "success": true,
+  "updated": { "status": "contacted", "contact_email": "editor@target-site.com" }
+}
+```
+
+## Generate an outreach email
+
+```http
+POST /opportunities/:id/generate-email
+```
+
+Generates an AI-written personalized outreach email for the opportunity.
+
+### Response
+
+```json
+{
+  "data": {
+    "opportunity_id": "uuid",
+    "email_text": "Subject: Partnership Opportunity...\n\nHi,\n\n...",
+    "email_html": "<p>Subject: Partnership Opportunity...</p>..."
+  }
+}
+```
+
+## Send an outreach email
+
+```http
+POST /opportunities/:id/send-email
+```
+
+### Request body
+
+```json
+{
+  "to_email": "editor@target-site.com",
+  "subject": "Partnership Opportunity — SEO Tools",
+  "body_text": "Hi John,\n\nI'd love to collaborate...",
+  "body_html": "<p>Hi John,</p><p>I'd love to collaborate...</p>"
+}
+```
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `to_email` | Yes | Recipient email address |
+| `subject` | Yes | Email subject line |
+| `body_text` | Yes | Plain text email body |
+| `body_html` | No | HTML email body |
+
+<Warning>
+  Organization SMTP settings must be configured under **Settings** before sending.
+</Warning>
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "Email queued for sending. Opportunity status updated to outreach_sent.",
+  "data": { "opportunity_id": "uuid", "to_email": "editor@target-site.com", "subject": "..." }
+}
+```

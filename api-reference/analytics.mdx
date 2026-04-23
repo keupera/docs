@@ -1,0 +1,274 @@
+---
+title: "Analytics"
+description: "Website analytics, Google Search Console data, and AI bot traffic metrics."
+---
+
+Query traffic and performance data for your website, cached Google Search Console stats, and AI bot crawl activity.
+
+**Function**: `public-api-analytics`
+**Base path**: `https://app.keupera.com/api/v1/public-api-analytics`
+
+## Common parameters
+
+All analytics endpoints accept these date range parameters:
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `website_id` | UUID | API key's website | Target website |
+| `range` | string | `30d` | Preset range: `7d`, `30d`, `90d` |
+| `from` | string | — | Start date (`YYYY-MM-DD`) |
+| `to` | string | — | End date (`YYYY-MM-DD`) |
+
+<Note>
+  When both `from` and `to` are provided, `range` is ignored.
+</Note>
+
+## Website analytics
+
+Real-time web analytics from your Keupera tracking script.
+
+### Summary
+
+```http
+GET /website/summary
+```
+
+```json
+{
+  "data": {
+    "unique_visitors": 15420,
+    "total_visits": 23150,
+    "pageviews": 45000,
+    "views_per_visit": 1.94,
+    "avg_visit_duration": 185.5,
+    "bounce_rate": 42.3
+  }
+}
+```
+
+### Daily traffic
+
+```http
+GET /website/daily
+```
+
+```json
+{
+  "data": [
+    { "date": "2024-01-15", "pageviews": 1500, "visits": 800, "visitors": 650 }
+  ]
+}
+```
+
+### Top pages
+
+```http
+GET /website/top-pages
+```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `limit` | integer | `20` | Number of pages to return |
+
+```json
+{
+  "data": [
+    { "path": "/blog/seo-guide", "views": 5200, "unique_visitors": 4100 },
+    { "path": "/", "views": 3400, "unique_visitors": 2800 }
+  ]
+}
+```
+
+### Referrers
+
+```http
+GET /website/referrers
+```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `limit` | integer | `20` | Number of sources to return |
+
+```json
+{
+  "data": [
+    { "source": "google.com", "views": 8000, "visits": 6500 },
+    { "source": "Direct", "views": 3500, "visits": 3000 }
+  ]
+}
+```
+
+### Device breakdown
+
+```http
+GET /website/devices
+```
+
+```json
+{
+  "data": [
+    { "device": "Desktop", "views": 25000, "visits": 15000 },
+    { "device": "Mobile", "views": 18000, "visits": 12000 },
+    { "device": "Tablet", "views": 2000, "visits": 1500 }
+  ]
+}
+```
+
+### Browser breakdown
+
+```http
+GET /website/browsers
+```
+
+```json
+{
+  "data": [
+    { "browser": "Chrome", "views": 30000, "visits": 18000 },
+    { "browser": "Safari", "views": 8000, "visits": 5000 }
+  ]
+}
+```
+
+### Geographic traffic
+
+```http
+GET /website/geo
+```
+
+```json
+{
+  "data": [
+    { "country": "US", "views": 15000, "visits": 10000 },
+    { "country": "GB", "views": 5000, "visits": 3500 }
+  ]
+}
+```
+
+## Search Console
+
+Google Search Console data cached in Keupera's database.
+
+### Daily stats
+
+```http
+GET /search-console/daily
+```
+
+```json
+{
+  "data": [
+    {
+      "date": "2024-01-15",
+      "clicks": 250,
+      "impressions": 12000,
+      "ctr": 2.08,
+      "position": 15.3
+    }
+  ]
+}
+```
+
+### Top keywords
+
+```http
+GET /search-console/keywords
+```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `limit` | integer | `100` | Max keywords to return |
+
+```json
+{
+  "data": [
+    {
+      "keyword": "best seo tools",
+      "clicks": 450,
+      "impressions": 8500,
+      "ctr": 5.29,
+      "position": 4.2
+    }
+  ]
+}
+```
+
+### Top pages
+
+```http
+GET /search-console/pages
+```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `limit` | integer | `100` | Max pages to return |
+
+```json
+{
+  "data": [
+    {
+      "page": "https://example.com/blog/seo-guide",
+      "clicks": 800,
+      "impressions": 15000,
+      "ctr": 5.33,
+      "position": 6.1
+    }
+  ]
+}
+```
+
+## Bot traffic
+
+AI bot crawl activity on your website.
+
+### Summary by bot
+
+```http
+GET /bot-traffic/summary
+```
+
+```json
+{
+  "data": {
+    "bots": [
+      { "bot_name": "GPTBot", "total_visits": 1500 },
+      { "bot_name": "ClaudeBot", "total_visits": 800 },
+      { "bot_name": "Googlebot", "total_visits": 5000 }
+    ],
+    "total_visits": 7300
+  }
+}
+```
+
+### Daily bot traffic
+
+```http
+GET /bot-traffic/daily
+```
+
+```json
+{
+  "data": [
+    { "visit_date": "2024-01-15", "bot_name": "GPTBot", "total_visits": 50 },
+    { "visit_date": "2024-01-15", "bot_name": "ClaudeBot", "total_visits": 30 }
+  ]
+}
+```
+
+### Top crawled pages
+
+```http
+GET /bot-traffic/top-pages
+```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `limit` | integer | `20` | Number of pages to return |
+
+```json
+{
+  "data": [
+    { "path": "/blog/seo-guide", "total_visits": 250 },
+    { "path": "/pricing", "total_visits": 180 }
+  ]
+}
+```

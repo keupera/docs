@@ -1,16 +1,13 @@
-# Mintlify Starter Kit
+# Keupera Docs
 
-Use the starter kit to get your docs deployed and ready to customize.
+The public documentation site for the [Keupera](https://keupera.com) platform and its Public API, built on [Mintlify](https://mintlify.com).
 
-Click the green **Use this template** button at the top of this repo to copy the Mintlify starter kit. The starter kit contains examples with
+Covers:
 
-- Guide pages
-- Navigation
-- Customizations
-- API reference pages
-- Use of popular components
-
-**[Follow the full quickstart guide](https://starter.mintlify.com/quickstart)**
+- Platform introduction and quickstart
+- Public API reference for Keywords, Backlinks, Content, AI Visibility, and Analytics
+- Authentication, pagination, and error handling
+- Writing and customization guides for contributors
 
 ## AI-assisted writing
 

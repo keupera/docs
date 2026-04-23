@@ -1,80 +1,126 @@
 ---
 title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+description: "Authenticate with the Keupera API and make your first request in minutes."
 ---
 
-## Get started in three steps
+## Make your first Keupera API request
 
-Get your documentation site running locally and make your first customization.
+Follow these three steps to authenticate, call an endpoint, and inspect a response from the Keupera Public API.
 
-### Step 1: Set up your local environment
+### Step 1: Generate an API key
 
 <AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
+  <Accordion icon="key" title="Create a key from the dashboard">
+    1. Log in to your [Keupera dashboard](https://app.keupera.com).
+    2. Go to **Settings → API Keys**.
+    3. Click **Create API key** and copy it somewhere safe — you won't see it again.
+
+    <Warning>
+      Treat your API key like a password. Never commit it to source control or expose it in client-side code.
+    </Warning>
   </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
+  <Accordion icon="shield-check" title="Verify your plan includes API access">
+    Public API access is tied to your subscription tier. If requests return `403 Forbidden`, upgrade your plan from **Settings → Billing** or contact [support@keupera.com](mailto:support@keupera.com).
   </Accordion>
 </AccordionGroup>
 
-### Step 2: Deploy your changes
+### Step 2: Call your first endpoint
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+All endpoints live under:
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+```
+https://app.keupera.com/api/v1/<function-name>
+```
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+Authenticate using a `Bearer` token in the `Authorization` header. Here's a minimal request that lists keywords for the website attached to your API key:
 
-### Step 3: Go live
+<CodeGroup>
+```bash cURL
+curl https://app.keupera.com/api/v1/public-api-keywords/keywords \
+  -H "Authorization: Bearer $KEUPERA_API_KEY"
+```
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+```js Node.js
+const res = await fetch(
+  "https://app.keupera.com/api/v1/public-api-keywords/keywords",
+  {
+    headers: {
+      Authorization: `Bearer ${process.env.KEUPERA_API_KEY}`,
+    },
+  }
+);
+const json = await res.json();
+console.log(json.data);
+```
+
+```python Python
+import os, requests
+
+res = requests.get(
+    "https://app.keupera.com/api/v1/public-api-keywords/keywords",
+    headers={"Authorization": f"Bearer {os.environ['KEUPERA_API_KEY']}"},
+)
+print(res.json()["data"])
+```
+</CodeGroup>
+
+### Step 3: Inspect the response
+
+Successful responses return JSON with a consistent shape:
+
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "term": "best seo tools",
+      "volume": 12000,
+      "difficulty": 45,
+      "status": "active"
+    }
+  ],
+  "meta": { "total": 150, "page": 1, "limit": 100 }
+}
+```
+
+Errors return an `error` string with an HTTP status code between `400` and `500`:
+
+```json
+{ "error": "Invalid or missing API key" }
+```
 
 ## Next steps
 
-Now that you have your docs running, explore these key features:
+Explore the API modules to build deeper integrations:
 
 <CardGroup cols={2}>
 
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
+<Card title="Keywords" icon="magnifying-glass" href="/api-reference/keywords">
+  Research, enrich, and manage keywords programmatically.
 </Card>
 
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
+<Card title="Backlinks" icon="link" href="/api-reference/backlinks">
+  Run outreach campaigns and track backlink opportunities.
 </Card>
 
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
+<Card title="Content" icon="pen-to-square" href="/api-reference/content">
+  Plan, generate, and schedule AI-written articles.
 </Card>
 
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
+<Card title="AI Visibility" icon="robot" href="/api-reference/ai-visibility">
+  Monitor your brand across LLM answers.
+</Card>
+
+<Card title="Analytics" icon="chart-line" href="/api-reference/analytics">
+  Traffic, Search Console, and AI bot crawl data.
+</Card>
+
+<Card title="Full API overview" icon="book-open" href="/api-reference/introduction">
+  Authentication, pagination, and error reference.
 </Card>
 
 </CardGroup>
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  Need help? Email [support@keupera.com](mailto:support@keupera.com) or open the in-app chat from your dashboard.
 </Note>

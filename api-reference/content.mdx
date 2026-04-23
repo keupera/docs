@@ -1,0 +1,242 @@
+---
+title: "Content"
+description: "Plan, generate, update, and publish AI-written articles, plus manage content automation."
+---
+
+Manage blog articles across the full content pipeline — planning, AI generation, scheduling, and publishing — and configure content automation settings per website.
+
+**Function**: `public-api-content`
+**Base path**: `https://app.keupera.com/api/v1/public-api-content`
+
+## List articles
+
+```http
+GET /articles
+```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `website_id` | UUID | API key's website | Target website |
+| `limit` | integer | `20` | Results per page |
+| `page` | integer | `1` | Page number |
+| `status` | string | — | Filter: `planned`, `queued`, `in-progress`, `completed`, `published` |
+
+### Response
+
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "title": "Best SEO Tools in 2024",
+      "slug": "best-seo-tools-2024",
+      "status": "published",
+      "pipeline_status": "completed",
+      "article_type": "standard",
+      "published_at": "2024-01-15T10:00:00Z",
+      "keywords": { "term": "seo tools", "volume": 12000, "difficulty": 45 },
+      "created_at": "2024-01-10T08:00:00Z"
+    }
+  ],
+  "meta": { "total": 50, "page": 1, "limit": 20 }
+}
+```
+
+## Get an article
+
+```http
+GET /articles/:id
+```
+
+Returns full article details, including linked keyword data.
+
+## Create an article (plan)
+
+```http
+POST /articles
+```
+
+### Request body
+
+```json
+{
+  "website_id": "uuid",
+  "title": "Ultimate Guide to SEO",
+  "keyword_id": "uuid",
+  "date": "2024-02-15",
+  "article_type": "listicle"
+}
+```
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `title` | Conditional | Article title — required if no `keyword_id` |
+| `keyword_id` | Conditional | Link to a keyword — required if no `title` |
+| `date` | No | Schedule date (ISO or `YYYY-MM-DD`) |
+| `article_type` | No | `standard`, `listicle`, `how-to`, etc. |
+
+### Response (201)
+
+```json
+{
+  "data": {
+    "id": "uuid",
+    "title": "Ultimate Guide to SEO",
+    "status": "planned",
+    "scheduled_publish_at": "2024-02-15T00:00:00Z"
+  }
+}
+```
+
+## Update an article
+
+```http
+PATCH /articles/:id
+```
+
+### Request body
+
+```json
+{
+  "title": "Updated Title",
+  "status": "planned",
+  "date": "2024-03-01",
+  "article_type": "how-to",
+  "meta_description": "A comprehensive guide to..."
+}
+```
+
+Allowed fields: `title`, `article_type`, `status`, `published_at`, `scheduled_publish_at`, `content`, `meta_description`, `featured_image`, `slug`, `date`.
+
+## Delete an article
+
+```http
+DELETE /articles/:id
+```
+
+### Response
+
+```json
+{ "success": true }
+```
+
+<Note>
+  If the article is linked to a keyword, the keyword status is reverted to `active`.
+</Note>
+
+## Trigger article generation
+
+```http
+POST /articles/:id/generate
+```
+
+Starts the AI content generation pipeline for a planned article.
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "Article generation started",
+  "article_id": "uuid"
+}
+```
+
+### Errors
+
+| Code | Meaning |
+|------|---------|
+| `400` | Article is already being generated |
+| `404` | Article not found or unauthorized |
+| `500` | Generation trigger failed |
+
+## Get calendar events
+
+```http
+GET /articles/calendar
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `website_id` | UUID | No | Target website |
+| `start` | string | Yes | Start date (ISO format) |
+| `end` | string | Yes | End date (ISO format) |
+
+### Response
+
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "title": "SEO Guide",
+      "date": "2024-02-15T00:00:00Z",
+      "status": "planned",
+      "pipeline_status": "pending",
+      "article_type": "standard",
+      "volume": 12000,
+      "difficulty": 45
+    }
+  ]
+}
+```
+
+## Get automation settings
+
+```http
+GET /automation
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `website_id` | UUID | Target website |
+
+### Response
+
+```json
+{
+  "data": {
+    "auto_generate": true,
+    "auto_publish": false,
+    "auto_plan_blog_posts": true,
+    "auto_plan_interval": "mon_wed_fri",
+    "auto_promote": false,
+    "auto_youtube": false,
+    "track_bot_traffic": true
+  }
+}
+```
+
+## Update automation settings
+
+```http
+PATCH /automation
+```
+
+### Request body
+
+```json
+{
+  "website_id": "uuid",
+  "auto_generate": true,
+  "auto_publish": true,
+  "auto_plan_blog_posts": false,
+  "auto_plan_interval": "daily"
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `auto_generate` | boolean | Auto-generate articles when planned |
+| `auto_publish` | boolean | Auto-publish articles when generated |
+| `auto_plan_blog_posts` | boolean | Auto-plan keywords into articles |
+| `auto_plan_interval` | string | Planning frequency: `daily`, `mon_wed_fri`, `weekdays`, etc. |
+| `auto_promote` | boolean | Auto-promote on social media |
+| `auto_youtube` | boolean | Auto-generate YouTube videos |
+| `track_bot_traffic` | boolean | Track AI bot traffic on website |
+
+### Response
+
+```json
+{ "success": true, "updated": { "auto_generate": true, "auto_publish": true } }
+```

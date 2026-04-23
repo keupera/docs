@@ -1,0 +1,197 @@
+---
+title: "Keywords"
+description: "Research, enrich, and manage keywords and keyword groups."
+---
+
+Manage keyword research programmatically: list, add, delete, star, bulk-update, trigger research, and manage groups.
+
+**Function**: `public-api-keywords`
+**Base path**: `https://app.keupera.com/api/v1/public-api-keywords`
+
+## List keywords
+
+```http
+GET /keywords
+```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `website_id` | UUID | API key's website | Target website |
+| `limit` | integer | `100` | Results per page |
+| `page` | integer | `1` | Page number |
+| `status` | string | — | Filter by status (`active`, `planned`, `ignored`) |
+| `group_id` | UUID | — | Filter by keyword group |
+
+### Response
+
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "term": "best seo tools",
+      "volume": 12000,
+      "difficulty": 45,
+      "cpc": 2.50,
+      "intent": "Commercial",
+      "opportunity": "High",
+      "status": "active",
+      "is_starred": false,
+      "funnel_stage": "consideration",
+      "language": "en",
+      "group_id": "uuid",
+      "keyword_groups": { "id": "uuid", "name": "SEO Tools" },
+      "blog_posts": { "id": "uuid", "title": "Best SEO Tools in 2024", "status": "published" },
+      "created_at": "2024-01-15T10:00:00Z"
+    }
+  ],
+  "meta": { "total": 150, "page": 1, "limit": 100 }
+}
+```
+
+## Add keywords
+
+```http
+POST /keywords
+```
+
+### Request body
+
+```json
+{
+  "website_id": "uuid",
+  "keywords": [
+    { "term": "seo tools", "keyword_group": "SEO" },
+    { "term": "keyword research", "volume": 5000, "difficulty": 30 }
+  ],
+  "enrich": true
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `keywords` | array | Yes | Array of keyword objects |
+| `keywords[].term` | string | Yes | The keyword term |
+| `keywords[].keyword_group` | string | No | Group name (auto-created if new) |
+| `keywords[].volume` | integer | No | Search volume (auto-filled if `enrich: true`) |
+| `keywords[].difficulty` | integer | No | Keyword difficulty |
+| `keywords[].cpc` | number | No | Cost per click |
+| `keywords[].intent` | string | No | Search intent |
+| `enrich` | boolean | No | Auto-enrich keywords with volume/difficulty data |
+
+### Response (201)
+
+```json
+{
+  "data": [{ "id": "uuid", "term": "seo tools", "volume": 12000 }],
+  "count": 2
+}
+```
+
+## Delete keywords
+
+```http
+DELETE /keywords
+```
+
+### Request body
+
+```json
+{
+  "website_id": "uuid",
+  "ids": ["uuid1", "uuid2"]
+}
+```
+
+### Response
+
+```json
+{ "success": true, "deleted": 2 }
+```
+
+## Toggle keyword star
+
+```http
+PATCH /keywords/:id/star
+```
+
+### Request body
+
+```json
+{ "is_starred": true }
+```
+
+### Response
+
+```json
+{ "success": true, "is_starred": true }
+```
+
+## Bulk update status
+
+```http
+PATCH /keywords/status
+```
+
+### Request body
+
+```json
+{
+  "ids": ["uuid1", "uuid2"],
+  "status": "planned"
+}
+```
+
+### Response
+
+```json
+{ "success": true, "updated": 2 }
+```
+
+## Trigger keyword research
+
+```http
+POST /keywords/research
+```
+
+### Request body
+
+```json
+{
+  "website_id": "uuid",
+  "seed_keywords": ["seo tools", "content marketing"],
+  "language": "en",
+  "country": "US"
+}
+```
+
+### Response
+
+```json
+{
+  "data": {
+    "keywords": [],
+    "clusters": []
+  }
+}
+```
+
+## List keyword groups
+
+```http
+GET /keywords/groups
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `website_id` | UUID | Target website |
+
+### Response
+
+```json
+{
+  "data": [
+    { "id": "uuid", "name": "SEO Tools", "website_id": "uuid", "created_at": "2024-01-15T10:00:00Z" }
+  ]
+}
+```
