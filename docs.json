@@ -3,9 +3,9 @@
   "theme": "mint",
   "name": "Keupera Docs",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#0062fb",
+    "light": "#3d8bff",
+    "dark": "#004bbd"
   },
   "favicon": "/favicon.svg",
   "navigation": {
