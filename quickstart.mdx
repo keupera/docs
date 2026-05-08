@@ -12,7 +12,7 @@ Follow these three steps to authenticate, call an endpoint, and inspect a respon
 <AccordionGroup>
   <Accordion icon="key" title="Create a key from the dashboard">
     1. Log in to your [Keupera dashboard](https://app.keupera.com).
-    2. Go to **Settings → API Keys**.
+    2. Go to **Account → API Keys**.
     3. Click **Create API key** and copy it somewhere safe — you won't see it again.
 
     <Warning>
@@ -29,20 +29,20 @@ Follow these three steps to authenticate, call an endpoint, and inspect a respon
 All endpoints live under:
 
 ```
-https://app.keupera.com/api/v1/<function-name>
+https://app.keupera.com/api/v1
 ```
 
 Authenticate using a `Bearer` token in the `Authorization` header. Here's a minimal request that lists keywords for the website attached to your API key:
 
 <CodeGroup>
 ```bash cURL
-curl https://app.keupera.com/api/v1/public-api-keywords/keywords \
+curl https://app.keupera.com/api/v1/keywords \
   -H "Authorization: Bearer $KEUPERA_API_KEY"
 ```
 
 ```js Node.js
 const res = await fetch(
-  "https://app.keupera.com/api/v1/public-api-keywords/keywords",
+  "https://app.keupera.com/api/v1/keywords",
   {
     headers: {
       Authorization: `Bearer ${process.env.KEUPERA_API_KEY}`,
@@ -57,7 +57,7 @@ console.log(json.data);
 import os, requests
 
 res = requests.get(
-    "https://app.keupera.com/api/v1/public-api-keywords/keywords",
+    "https://app.keupera.com/api/v1/keywords",
     headers={"Authorization": f"Bearer {os.environ['KEUPERA_API_KEY']}"},
 )
 print(res.json()["data"])

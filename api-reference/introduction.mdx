@@ -7,21 +7,11 @@ The **Keupera Public API** gives you programmatic access to every major platform
 
 ## Base URL
 
-All endpoints live under a single host, grouped by module function name:
-
 ```
-https://app.keupera.com/api/v1/<function-name>
+https://app.keupera.com/api/v1
 ```
 
-Module function names:
-
-| Module | Function |
-|--------|----------|
-| Keywords | `public-api-keywords` |
-| Backlinks | `public-api-backlinks` |
-| Content | `public-api-content` |
-| AI Visibility | `public-api-ai-visibility` |
-| Analytics | `public-api-analytics` |
+All resources are available directly under this prefix — for example `GET https://app.keupera.com/api/v1/keywords`.
 
 ## Authentication
 
