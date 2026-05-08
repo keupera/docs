@@ -16,7 +16,7 @@
     }
   ],
   "paths": {
-    "/public-api-keywords/keywords": {
+    "/keywords": {
       "get": {
         "summary": "List keywords",
         "description": "Returns paginated keywords for the authenticated website.",
