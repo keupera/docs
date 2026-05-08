@@ -71,7 +71,8 @@
               "api-reference/backlinks",
               "api-reference/content",
               "api-reference/ai-visibility",
-              "api-reference/analytics"
+              "api-reference/analytics",
+              "api-reference/utilities"
             ]
           }
         ]

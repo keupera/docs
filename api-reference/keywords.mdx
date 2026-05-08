@@ -71,8 +71,8 @@ POST /keywords
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `keywords` | array | Yes | Array of keyword objects |
-| `keywords[].term` | string | Yes | The keyword term |
-| `keywords[].keyword_group` | string | No | Group name (auto-created if new) |
+| `keywords[].term` (or `keyword`) | string | Yes | The keyword term |
+| `keywords[].keyword_group` (or `group`) | string | No | Group name (auto-created if new) |
 | `keywords[].volume` | integer | No | Search volume (auto-filled if `enrich: true`) |
 | `keywords[].difficulty` | integer | No | Keyword difficulty |
 | `keywords[].cpc` | number | No | Cost per click |
@@ -154,6 +154,8 @@ PATCH /keywords/status
 POST /keywords/research
 ```
 
+Generates keyword ideas using AI + DataForSEO enrichment. **Long-running** — returns a job handle by default. Pass `"sync": true` to wait inline (not recommended; subject to gateway timeouts).
+
 ### Request body
 
 ```json
@@ -161,8 +163,34 @@ POST /keywords/research
   "website_id": "uuid",
   "seed_keywords": ["seo tools", "content marketing"],
   "language": "en",
-  "country": "US"
+  "country": "US",
+  "sync": false
 }
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-----------|
+| `seed_keywords` | array | Yes | Seed terms to expand from |
+| `language` | string | No | Language code (e.g. `en`) |
+| `country` | string | No | Country code (e.g. `US`) |
+| `sync` | boolean | No | `true` to wait for inline result (not recommended) |
+
+### Response (`202 Accepted`)
+
+```json
+{
+  "data": {
+    "job_id": "abc-uuid",
+    "status": "pending",
+    "poll_url": "/keywords/research/abc-uuid"
+  }
+}
+```
+
+## Poll a research job
+
+```http
+GET /keywords/research/:jobId
 ```
 
 ### Response
@@ -170,11 +198,17 @@ POST /keywords/research
 ```json
 {
   "data": {
-    "keywords": [],
-    "clusters": []
+    "id": "abc-uuid",
+    "status": "completed",
+    "result": { "keywords": [ ] },
+    "error": null,
+    "created_at": "2024-01-15T10:00:00Z",
+    "updated_at": "2024-01-15T10:01:30Z"
   }
 }
 ```
+
+`status` is one of `pending`, `processing`, `completed`, or `failed`.
 
 ## List keyword groups
 

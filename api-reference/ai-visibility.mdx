@@ -50,26 +50,22 @@ POST /brand-radar/campaigns
 ```json
 {
   "website_id": "uuid",
-  "prompt": "Best project management tools for teams",
-  "brands": [{ "name": "MyBrand", "domain": "mybrand.com" }],
-  "competitors": [{ "name": "Competitor", "domain": "comp.com" }],
-  "frequency": 7,
-  "languages": ["en", "de"]
+  "name": "Q4 monitoring",
+  "prompts": ["best running shoes 2026", "top trail running gear"],
+  "frequency": "weekly"
 }
 ```
 
 | Field | Required | Description |
-|-------|----------|-------------|
-| `prompt` | Yes | The prompt/query to track |
-| `brands` | Yes | Array of brand objects (`name`, `domain`) |
-| `competitors` | No | Competitor brands to track alongside |
-| `frequency` | No | Run frequency in days (default `7`) |
-| `languages` | No | Language codes (max 3, default `["en"]`) |
+|-------|----------|-----------|
+| `name` | Yes | Campaign name |
+| `prompts` | Yes | Array of prompts/queries to track |
+| `frequency` | No | Run frequency: `daily`, `weekly`, `monthly` (default `weekly`) |
 
 #### Response (201)
 
 ```json
-{ "data": { "id": "uuid", "prompt": "...", "status": "active" } }
+{ "data": { "id": "uuid", "name": "...", "status": "active" } }
 ```
 
 ### Delete a campaign
@@ -180,17 +176,15 @@ POST /prompt-research/campaigns
 ```json
 {
   "website_id": "uuid",
-  "custom_prompt": "What are the best SEO tools for startups?",
-  "frequency": 3,
-  "languages": ["en", "de"]
+  "name": "Top-of-funnel",
+  "prompts": ["how to choose running shoes", "best running shoes for beginners"]
 }
 ```
 
 | Field | Required | Description |
-|-------|----------|-------------|
-| `custom_prompt` | Yes | The prompt to research |
-| `frequency` | No | Run frequency in days (default `7`) |
-| `languages` | No | Language codes (max 3, default `["en"]`) |
+|-------|----------|-----------|
+| `name` | Yes | Campaign name |
+| `prompts` | Yes | Array of prompts to research and cluster |
 
 ### Get campaign details + results
 

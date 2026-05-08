@@ -31,11 +31,26 @@ Every request must include your API key as a Bearer token:
 Authorization: Bearer YOUR_KEUPERA_API_KEY
 ```
 
-Generate keys from **Settings → API Keys** in your [Keupera dashboard](https://app.keupera.com).
+Generate keys from **Account → API Keys** in your [Keupera dashboard](https://app.keupera.com).
+
+Each key:
+- Belongs to a single user and is bound to **one website by default** (configurable in the dashboard).
+- Requires a paid subscription tier with API access enabled.
+- Only sees websites within your organisation(s).
 
 <Warning>
   Your subscription plan must include Public API access. Requests from plans without API entitlement return `403 Forbidden`.
 </Warning>
+
+### Scoping to a specific website
+
+If your key is bound to a website, every request defaults to that website. To target a different website you own, pass `website_id` as a query parameter:
+
+```http
+GET /api/v1/keywords?website_id=<uuid>
+```
+
+The website must belong to one of your organisations, otherwise the API returns `403`.
 
 ## Common query parameters
 
@@ -92,14 +107,23 @@ All responses are JSON and follow a consistent shape.
 | `201` | Created |
 | `400` | Bad request — missing or invalid parameters |
 | `401` | Unauthorized — missing or invalid API key |
+| `402` | Usage limit reached — crawl credits, AI credits, etc. exhausted |
 | `403` | Forbidden — inactive key, no API access, or unauthorized website |
 | `404` | Not found |
-| `429` | Too many requests — rate limit exceeded |
 | `500` | Internal server error |
 
-## Rate limits
+## Rate limits & usage
 
-Requests are rate-limited per subscription tier. If you exceed your quota you'll receive `429 Too Many Requests`. Contact [ask@support.keupera.com](mailto:ask@support.keupera.com) to request a higher limit.
+Each API call counts against your plan's limits the same way in-app actions do:
+
+| Resource | Routes that consume it |
+|---|---|
+| `keyword_research` (10 crawl credits) | `POST /keywords/research`, automatic enrichment in `POST /keywords` |
+| `backlink_research` (20 crawl credits) | `POST /campaigns` (backlinks) |
+| `ai_credits` (per-token) | `POST /opportunities/:id/generate-email`, `POST /articles`, `POST /articles/:id/generate` |
+| `crawl_credits` | Enrichment, GSC syncs |
+
+When a limit is reached the API responds with `402 Payment Required`. Enable metered billing in **Account → Billing → Usage** to allow overage.
 
 ## CORS
 

@@ -72,6 +72,7 @@ POST /articles
 |-------|----------|-------------|
 | `title` | Conditional | Article title — required if no `keyword_id` |
 | `keyword_id` | Conditional | Link to a keyword — required if no `title` |
+| `outline` | No | Pass an outline for AI-assisted drafting |
 | `date` | No | Schedule date (ISO or `YYYY-MM-DD`) |
 | `article_type` | No | `standard`, `listicle`, `how-to`, etc. |
 
@@ -106,7 +107,7 @@ PATCH /articles/:id
 }
 ```
 
-Allowed fields: `title`, `article_type`, `status`, `published_at`, `scheduled_publish_at`, `content`, `meta_description`, `featured_image`, `slug`, `date`.
+Allowed fields: `title`, `content`, `status`, `meta_title`, `meta_description`, `slug`, `cover_image_url`, `keyword_id`, `scheduled_at`.
 
 ## Delete an article
 
@@ -239,4 +240,28 @@ PATCH /automation
 
 ```json
 { "success": true, "updated": { "auto_generate": true, "auto_publish": true } }
+```
+
+## Legacy endpoints
+
+<Warning>
+  The following endpoints are legacy. Use `/articles` going forward.
+</Warning>
+
+### List blog posts
+
+```http
+GET /blog-posts
+```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `website_id` | UUID | API key's website | Target website |
+| `limit` | integer | `100` | Results per page |
+| `page` | integer | `1` | Page number |
+
+### Get a blog post
+
+```http
+GET /blog-posts/:id
 ```
