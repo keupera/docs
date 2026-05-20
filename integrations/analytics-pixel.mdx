@@ -1,0 +1,99 @@
+---
+title: "Web analytics pixel"
+description: "Install the cookieless Keupera tracker to power the Analytics module."
+---
+
+The Keupera tracker is a lightweight (<2 KB), cookieless JavaScript snippet that streams pageviews into the [Analytics](/features/analytics) module. It populates the **Website** summary, daily traffic, top pages, referrers, devices, browsers, and geo breakdowns.
+
+## How it works
+
+- No cookies. A `keupera_session_id` is generated in `sessionStorage` and reset when the tab closes.
+- Uses `navigator.sendBeacon` so the request never blocks navigation; falls back to `fetch` on older browsers.
+- Captures URL, path, hostname, referrer, and UTM parameters automatically.
+- Skips common sensitive paths (`/wp-admin`, `/wp-login`, `/admin`, `/.env`, `/.git`).
+
+## Get your Tracking API key
+
+<Steps>
+  <Step title="Open API Keys">
+    Go to **Account → API Keys** in your [dashboard](https://app.keupera.com).
+  </Step>
+  <Step title="Generate a 'Tracking' key">
+    Click **Create API key** and choose the **Tracking** scope. Tracking keys are restricted — they can only send analytics events, never read or mutate other data, so it's safe to expose them in client-side HTML.
+  </Step>
+</Steps>
+
+<Warning>
+  Never embed a Full Access (`sk_live_...`) key in your website's HTML. Always use a **Tracking** scoped key for the pixel.
+</Warning>
+
+## Install on any website
+
+Paste this snippet just before `</head>` on every page you want to track:
+
+```html
+<!-- Keupera Analytics -->
+<script>
+  window.KEUPERA_API_KEY = "YOUR_TRACKING_API_KEY";
+</script>
+<script src="https://zone-2.cdn.keupera.com/public/scripts/analytics/tracker.js" async defer></script>
+<!-- End Keupera Analytics -->
+```
+
+That's the whole install. The script self-initialises on `DOMContentLoaded` and fires a `pageview` event automatically.
+
+## Platform-specific install
+
+<AccordionGroup>
+  <Accordion icon="wordpress" title="WordPress">
+    Install the [Keupera Connector plugin](/integrations/wordpress). It injects the snippet into `wp_head` automatically when **Enable Website Analytics** is on (default). The plugin uses your Tracking key if provided, otherwise it falls back to the connected Full Access key.
+  </Accordion>
+  <Accordion icon="bolt" title="Framer">
+    Install the **Keupera** plugin from the Framer marketplace and paste your Tracking key. The plugin handles the snippet injection.
+  </Accordion>
+  <Accordion icon="code" title="Next.js / React">
+    Add the snippet to your root layout (`app/layout.tsx`) using `next/script`:
+
+    ```tsx
+    import Script from "next/script";
+
+    export default function RootLayout({ children }: { children: React.ReactNode }) {
+      return (
+        <html>
+          <head>
+            <Script id="keupera-key" strategy="beforeInteractive">
+              {`window.KEUPERA_API_KEY = "${process.env.NEXT_PUBLIC_KEUPERA_TRACKING_KEY}";`}
+            </Script>
+            <Script
+              src="https://zone-2.cdn.keupera.com/public/scripts/analytics/tracker.js"
+              strategy="afterInteractive"
+            />
+          </head>
+          <body>{children}</body>
+        </html>
+      );
+    }
+    ```
+  </Accordion>
+  <Accordion icon="globe" title="Webflow / Squarespace / Wix">
+    Add the snippet in **Site Settings → Custom Code → Header**. The exact path varies per builder but every modern site builder supports a global `<head>` injection field.
+  </Accordion>
+</AccordionGroup>
+
+## Custom events (optional)
+
+After the tracker loads, `window.keupera.track(eventName, properties)` is available for custom events:
+
+```js
+window.keupera?.track("signup_clicked", { plan: "pro" });
+```
+
+Custom events show up in the **Analytics → Events** view alongside pageviews.
+
+## Verify the install
+
+1. Open your live site in a new browser tab.
+2. Open DevTools → **Network** and filter by `track`. You should see a `POST` to `https://sqnxgokfnvdglftrgekd.supabase.co/functions/v1/track` returning `204`.
+3. In Keupera, open **Analytics → Website Summary**. New sessions appear within ~30 seconds.
+
+If you see `Keupera Analytics: API Key not found` in the console, the `window.KEUPERA_API_KEY` assignment ran after the tracker — make sure the key `<script>` block sits **before** the tracker `<script>` tag.

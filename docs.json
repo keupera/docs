@@ -52,6 +52,33 @@
               "features/prompt-engine",
               "features/ai-funnel"
             ]
+          },
+          {
+            "group": "Integrations",
+            "pages": [
+              "integrations/overview",
+              {
+                "group": "Automation",
+                "pages": [
+                  "integrations/n8n",
+                  "integrations/zapier"
+                ]
+              },
+              {
+                "group": "CMS",
+                "pages": [
+                  "integrations/wordpress"
+                ]
+              },
+              {
+                "group": "Data sources",
+                "pages": [
+                  "integrations/analytics-pixel",
+                  "integrations/bot-tracking",
+                  "integrations/google-search-console"
+                ]
+              }
+            ]
           }
         ]
       },

@@ -1,0 +1,69 @@
+---
+title: "Google Search Console"
+description: "Connect GSC to pull real keyword, click, and ranking data into Keupera."
+---
+
+Connecting **Google Search Console (GSC)** unlocks the most valuable data Keupera can give you: the actual queries Google sends to your site, with impressions, clicks, CTR, and average position. Once connected, Keupera uses GSC data to power:
+
+- **Analytics → Search Console** views (daily stats, top keywords, top pages)
+- **Striking distance** insights (keywords ranking 11–20 with high impressions)
+- **Keyword cannibalisation** detection (multiple URLs competing for the same query)
+- **Low-CTR opportunities** (high-impression pages with poor click-through)
+- Real impressions and click counts on tracked keywords inside the [Keywords](/features/keywords) module.
+
+## Prerequisites
+
+- A verified property in [Google Search Console](https://search.google.com/search-console).
+- The Google account you use to connect must have at least **Restricted** access to the property in GSC.
+
+## Connect GSC
+
+<Steps>
+  <Step title="Open Settings → Integrations">
+    Inside the [Keupera dashboard](https://app.keupera.com) navigate to **Settings → Integrations** for the website you want to connect.
+  </Step>
+  <Step title="Click 'Connect' under Google Search Console">
+    The button redirects you through Google's OAuth consent screen. Keupera requests the read-only `webmasters.readonly` scope — it can read property data but never modify your GSC setup.
+
+    <Note>
+      The OAuth flow uses `access_type=offline` and `prompt=consent` so Google issues a refresh token. This lets Keupera continue syncing in the background even when you're logged out.
+    </Note>
+  </Step>
+  <Step title="Pick the right property">
+    After authorising, Keupera lists every GSC property the connected Google account can access. Choose the one matching the website you're configuring and click **Save**.
+  </Step>
+</Steps>
+
+The first sync runs immediately and pulls the last 90 days of data. Subsequent syncs run automatically every 24 hours.
+
+## What gets synced
+
+| Data | Source | Where you'll see it |
+|------|--------|---------------------|
+| Daily clicks, impressions, CTR, position | GSC `searchanalytics` API | **Analytics → Search Console → Daily** |
+| Top-performing queries | GSC dimension `query` | **Analytics → Top Keywords** |
+| Top-performing pages | GSC dimension `page` | **Analytics → Top Pages (GSC)** |
+| Per-keyword impressions/clicks | Joined onto your tracked Keywords | **Keywords** table |
+| Striking distance, cannibalisation, low CTR | Computed from GSC data | **Analytics → SEO Insights** |
+
+## Permissions & privacy
+
+- **Read-only** — Keupera only ever requests the `webmasters.readonly` scope.
+- **Refresh tokens are encrypted** at rest in Keupera's database.
+- You can disconnect at any time from **Settings → Integrations → Disconnect GSC**, which immediately revokes the token and stops future syncs. Already-synced historical data stays in your Keupera analytics.
+
+## Troubleshooting
+
+- **"No properties found"** — make sure the Google account you authorised has access to the property in GSC. Add the account in Search Console under **Settings → Users and permissions** if needed.
+- **Data missing for the last 2–3 days** — Google delays GSC data by up to 72 hours. This is a Google-side limitation, not Keupera.
+- **Sync errors after a Google password change** — refresh tokens can be invalidated. Re-run the **Connect** flow to issue a new one.
+
+## API access
+
+Once GSC is connected, the data is also available via the [Public API](/api-reference/analytics#search-console):
+
+```http
+GET /api/v1/search-console/daily
+GET /api/v1/search-console/keywords
+GET /api/v1/search-console/pages
+```

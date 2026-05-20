@@ -1,0 +1,75 @@
+---
+title: "Zapier"
+description: "Call Keupera from any Zap using Webhooks by Zapier."
+---
+
+Keupera exposes a clean REST API, so any Zap can talk to it through the built-in **Webhooks by Zapier** action. No custom integration required.
+
+<Note>
+  A native Zapier app is on the roadmap. Until then, the recipes below cover every Keupera endpoint.
+</Note>
+
+## Prerequisites
+
+- A Zapier account on any plan that supports **Webhooks by Zapier** (Starter and above).
+- A Keupera API key from **Account → API Keys** in your [dashboard](https://app.keupera.com).
+
+## Generic setup
+
+Every Zap that calls Keupera uses the same basic action.
+
+<Steps>
+  <Step title="Add a 'Webhooks by Zapier' action">
+    In your Zap editor, add an action and choose **Webhooks by Zapier**.
+  </Step>
+  <Step title="Pick the right event">
+    - `GET` for read operations (list keywords, fetch analytics, etc.)
+    - `POST` to create resources or trigger jobs
+    - `PATCH` to update records
+    - `DELETE` to remove records (use **Custom Request**)
+  </Step>
+  <Step title="Configure the request">
+    - **URL**: `https://app.keupera.com/api/v1/<endpoint>`
+    - **Data Pass-Through**: `false`
+    - **Headers**:
+      - `Authorization`: `Bearer sk_live_xxxxxxxxxxxxxxxx`
+      - `Content-Type`: `application/json`
+    - **Data** (for POST/PATCH): JSON body for the endpoint
+  </Step>
+  <Step title="Test the step">
+    Zapier shows the JSON response so you can map fields into downstream steps.
+  </Step>
+</Steps>
+
+<Warning>
+  Store the API key in Zapier's **Storage** or paste it once into the action — never expose `sk_live_...` keys in client-side code.
+</Warning>
+
+## Recipe: Add a keyword from a Google Sheet row
+
+| Step | App | Configuration |
+|------|-----|---------------|
+| 1 | Google Sheets | **New Spreadsheet Row** trigger |
+| 2 | Webhooks by Zapier | **POST** to `https://app.keupera.com/api/v1/keywords` with body `{ "keywords": [{ "term": "{{Keyword}}", "keyword_group": "{{Group}}" }], "enrich": true }` |
+
+## Recipe: Notify Slack when a Brand Radar campaign finishes
+
+| Step | App | Configuration |
+|------|-----|---------------|
+| 1 | Schedule by Zapier | Every hour |
+| 2 | Webhooks by Zapier | **GET** `https://app.keupera.com/api/v1/brand-radar/campaigns/{{campaign_id}}/results?limit=1` |
+| 3 | Filter by Zapier | Only continue if `data[0].run_at` is newer than the last seen timestamp |
+| 4 | Slack | **Send Channel Message** with the visibility score and mentions |
+
+## Recipe: Publish a draft article when a Trello card moves
+
+| Step | App | Configuration |
+|------|-----|---------------|
+| 1 | Trello | **Card Moved to List** trigger (list = "Ready to publish") |
+| 2 | Webhooks by Zapier | **PATCH** `https://app.keupera.com/api/v1/articles/{{Card Description Article ID}}` with body `{ "status": "published" }` |
+
+## Errors & retries
+
+Keupera returns standard HTTP codes (`401`, `402`, `403`, `404`, `500`) with a JSON `{ "error": "..." }` body. Zapier will surface the error message; for `402 Payment Required` (usage limit reached) enable metered billing in **Account → Billing → Usage**.
+
+See the full [API reference](/api-reference/introduction) for every endpoint, request shape, and response example.

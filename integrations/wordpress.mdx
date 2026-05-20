@@ -1,0 +1,93 @@
+---
+title: "WordPress"
+description: "Publish Keupera articles directly to WordPress and track AI bots with the official Connector plugin."
+---
+
+The **Keupera Connector** is a free WordPress plugin that links your site to Keupera. Once installed, Keupera can publish AI-written articles into any post type, push SEO metadata to Yoast or Rank Math, inject the analytics tracking pixel, and capture AI bot visits server-side.
+
+## What you get
+
+- One-click site connection from the WordPress admin.
+- Direct publishing of Keupera articles to **Posts**, **Pages**, or any custom post type.
+- Automatic HTML → Gutenberg block conversion.
+- Featured image and inline image sideloading.
+- Yoast SEO and Rank Math metadata sync.
+- Optional **SEO Toolbar** inside the Block Editor.
+- Automatic injection of the [Keupera Analytics pixel](/integrations/analytics-pixel).
+- Server-side [AI bot tracking](/integrations/bot-tracking) (catches bots that JavaScript pixels miss).
+
+## Install the plugin
+
+<Steps>
+  <Step title="Download the plugin">
+    Get the latest `keupera-connector.zip` from the [Keupera dashboard](https://app.keupera.com) under **Settings → Integrations → WordPress**.
+  </Step>
+  <Step title="Upload it to WordPress">
+    In WordPress admin go to **Plugins → Add New → Upload Plugin**, choose the zip, and click **Install Now → Activate**.
+  </Step>
+  <Step title="Open the connector settings">
+    On activation you're redirected to **Settings → Keupera Connector** automatically.
+  </Step>
+</Steps>
+
+## Connect your site
+
+<Steps>
+  <Step title="Generate a Full Access API key">
+    In the Keupera dashboard go to **Account → API Keys → Create API key** and copy the `sk_live_...` value.
+  </Step>
+  <Step title="Paste it into the plugin">
+    Paste the key into the **Keupera API Key (Full Access)** field and click **Connect Site**.
+
+    The plugin calls `POST /api/v1/connect` with `{ "type": "wordpress", "site_url": "<your site>", "username": "<admin>", "app_password": "..." }` and stores the returned `website_id` locally.
+  </Step>
+  <Step title="(Optional) Add a Tracking Key">
+    Connecting automatically provisions a restricted **Tracking** key used only by the analytics pixel. You can also paste a manually generated tracking key under **Tracking API Key (Optional)**.
+  </Step>
+</Steps>
+
+Once connected you'll see **✅ Protected & Connected** along with your Website ID. Use **Disconnect / Reset Key** to rotate.
+
+## Publishing settings
+
+| Setting | Default | Purpose |
+|---------|---------|---------|
+| **Default Post Type** | `post` | Which CPT Keupera publishes into. Lists every public post type registered on your site, with its supported features (title, editor, thumbnail, excerpt, custom-fields) and taxonomies. |
+| **Enable SEO Toolbar** | On | Adds a Keupera SEO sidebar inside the Gutenberg editor for real-time analysis. |
+| **Enable Website Analytics** | On | Auto-injects the Keupera tracking pixel into `wp_head`. Cookieless — uses `sessionStorage` only. |
+
+## How publishing works
+
+When Keupera publishes an article, the plugin's REST route `POST /wp-json/keupera/v1/publish` runs:
+
+1. **Auth** — Application Password (Basic Auth) or fallback `X-Keupera-Authorization` header for hosts that strip the standard header.
+2. **Create post** — `wp_insert_post` with the configured post type, title, content, and excerpt.
+3. **HTML → blocks** — Converts headings, lists, blockquotes, code, images, tables, and figures into Gutenberg blocks so editors don't see "Classic Block" fallbacks.
+4. **Metadata** — Applies `meta_input` and ACF fields if the ACF plugin is active.
+5. **Taxonomies** — Accepts terms by ID, slug, or name; auto-creates missing terms (e.g. tags).
+6. **SEO** — Writes meta title, description, and focus keyword to Yoast or Rank Math when present.
+7. **Images** — Sideloads remote images (featured image and any `<img src>` in the body) into the WordPress Media Library, rewrites URLs, and rebuilds image blocks with proper attributes.
+
+## Connector REST endpoints
+
+The plugin registers a `keupera/v1` REST namespace for Keupera to use:
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| `POST` | `/wp-json/keupera/v1/publish` | Create a post with full SEO + media pipeline. |
+| `GET` | `/wp-json/keupera/v1/post-types` | Discover available CPTs, their supports, and taxonomies. |
+| `GET` | `/wp-json/keupera/v1/taxonomies?post_type=...` | Discover taxonomies for a CPT. |
+| `GET` | `/wp-json/keupera/v1/terms?taxonomy=...` | List terms inside a taxonomy. |
+
+All four routes require an authenticated WordPress user with `edit_posts` for the requested CPT.
+
+## Troubleshooting
+
+- **"Permission denied" on publish** — your host is stripping the `Authorization` header. The plugin falls back to `X-Keupera-Authorization`; if that also fails, open a support ticket.
+- **Posts published as "Classic Block"** — make sure your content is under 1 MB; the block converter uses `DOMDocument` which is included by default in PHP but disabled in some hardened environments.
+- **Debug log** — check `wp-content/uploads/keupera-debug.log` or scroll to the bottom of the connector settings page; the log viewer is rendered there if the file exists.
+
+## Resources
+
+- Plugin source: see `keupera-wp-plugin/` in the Keupera repo.
+- Related: [Web analytics pixel](/integrations/analytics-pixel) · [Bot tracking](/integrations/bot-tracking)

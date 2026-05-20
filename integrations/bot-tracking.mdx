@@ -1,0 +1,118 @@
+---
+title: "AI bot traffic tracker"
+description: "Capture AI crawler visits — GPTBot, ClaudeBot, PerplexityBot, and more."
+---
+
+AI assistants don't just answer from training data — they crawl the live web. The bot tracker tells you **which AI bots are reading your site, how often, and which pages they touch**. The data feeds the **Analytics → Bot Traffic** dashboard.
+
+## Why a separate tracker?
+
+The [JavaScript analytics pixel](/integrations/analytics-pixel) only fires when a real browser executes JS. Most AI crawlers fetch raw HTML and never run scripts, so they're invisible to client-side tracking. The bot tracker runs **server-side** (or via the WordPress plugin) and inspects the `User-Agent` of every request.
+
+## Bots detected
+
+| Bot | Operator |
+|-----|----------|
+| GPTBot, ChatGPT-User, OAI-SearchBot | OpenAI |
+| ClaudeBot, Claude-Web, Anthropic-ai | Anthropic |
+| Google-Extended, Googlebot | Google |
+| PerplexityBot | Perplexity |
+| Meta-ExternalAgent, FacebookBot | Meta |
+| Bytespider | ByteDance |
+| Applebot-Extended | Apple |
+| Cohere-ai | Cohere |
+| YouBot | You.com |
+| CCBot | Common Crawl |
+| Diffbot, Omgili | Other AI training crawlers |
+
+The list is updated continuously as new agents appear.
+
+## Enable it
+
+<Steps>
+  <Step title="Open the website settings">
+    In the [Keupera dashboard](https://app.keupera.com) open **Settings → Website**.
+  </Step>
+  <Step title="Toggle 'Enable Bot Tracking' on">
+    Flip the switch. Keupera now accepts bot events for this website.
+  </Step>
+</Steps>
+
+## Install the collector
+
+Pick whichever option matches your stack.
+
+<AccordionGroup>
+  <Accordion icon="wordpress" title="WordPress (recommended)">
+    Install the [Keupera Connector plugin](/integrations/wordpress). It hooks `template_redirect`, inspects every frontend request's `User-Agent`, queues hits in a transient, and flushes them in batches of 10 (or every 5 minutes via WP-Cron, whichever comes first) to:
+
+    ```
+    POST https://app.keupera.com/api/v1/track-bot
+    Authorization: Bearer <your API key>
+    Content-Type: application/json
+
+    { "events": [ { "bot_name": "GPTBot", "path": "/blog/post", "visit_date": "2026-05-08" } ] }
+    ```
+
+    No further setup — bot tracking starts automatically.
+  </Accordion>
+  <Accordion icon="server" title="Custom server / middleware">
+    Detect known bot UAs in your edge layer (Cloudflare Workers, Vercel Middleware, Nginx, Express, etc.) and `POST` to `/api/v1/track-bot` with one or more events:
+
+    ```bash
+    curl -X POST https://app.keupera.com/api/v1/track-bot \
+      -H "Authorization: Bearer $KEUPERA_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "events": [
+          { "bot_name": "GPTBot", "path": "/pricing", "visit_date": "2026-05-08" }
+        ]
+      }'
+    ```
+
+    Batch up to 50 events per call. The endpoint is idempotent on `(bot_name, path, visit_date)` — duplicates increment the visit counter rather than creating new rows.
+  </Accordion>
+  <Accordion icon="cloudflare" title="Cloudflare Worker (example)">
+    ```js
+    const BOTS = /GPTBot|ClaudeBot|PerplexityBot|Google-Extended|Bytespider|CCBot|Anthropic-ai/i;
+
+    export default {
+      async fetch(req, env, ctx) {
+        const ua = req.headers.get("user-agent") || "";
+        const match = ua.match(BOTS);
+        if (match) {
+          ctx.waitUntil(
+            fetch("https://app.keupera.com/api/v1/track-bot", {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${env.KEUPERA_API_KEY}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                events: [{
+                  bot_name: match[0],
+                  path: new URL(req.url).pathname,
+                  visit_date: new Date().toISOString().slice(0, 10),
+                }],
+              }),
+            })
+          );
+        }
+        return fetch(req);
+      },
+    };
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Read the data
+
+Bot data is exposed both in the dashboard and via the API:
+
+| Endpoint | Returns |
+|----------|---------|
+| `GET /api/v1/bot-traffic/summary` | Total visits per bot |
+| `GET /api/v1/bot-traffic/daily` | Daily time-series per bot |
+| `GET /api/v1/bot-traffic/top-pages` | Most-crawled paths |
+
+See the full schemas in the [Analytics API reference](/api-reference/analytics#bot-traffic).

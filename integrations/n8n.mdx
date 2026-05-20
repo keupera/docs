@@ -1,0 +1,74 @@
+---
+title: "n8n"
+description: "Automate Keupera with the official n8n community node."
+---
+
+[n8n](https://n8n.io) is an open-source workflow automation tool. The official `n8n-nodes-keupera` community node lets you call every Keupera API module from inside a workflow, with credential management and auto-validated requests.
+
+## Install the node
+
+<Steps>
+  <Step title="Open the n8n community nodes settings">
+    In your n8n instance go to **Settings → Community Nodes** and click **Install a community node**.
+  </Step>
+  <Step title="Install `n8n-nodes-keupera`">
+    Enter the package name:
+
+    ```
+    n8n-nodes-keupera
+    ```
+
+    Accept the risk prompt and click **Install**. n8n will pull it from npm and register the node.
+  </Step>
+  <Step title="Add the node to a workflow">
+    Open any workflow, click the **+** button and search for **Keupera**. Add it as a step.
+  </Step>
+</Steps>
+
+## Set up credentials
+
+The node ships with a **Keupera API** credential type.
+
+<Steps>
+  <Step title="Generate a Keupera API key">
+    In the [Keupera dashboard](https://app.keupera.com) go to **Account → API Keys** and click **Create API key**. Copy the `sk_live_...` value.
+  </Step>
+  <Step title="Create the credential in n8n">
+    On the Keupera node, click **Credential to connect with → Create New**. Paste the key into the **API Key** field and save.
+
+    n8n automatically verifies the key by calling `GET /me` against `https://app.keupera.com/api/v1`.
+  </Step>
+</Steps>
+
+## Available resources
+
+The node groups operations by API module, mirroring the [API reference](/api-reference/introduction):
+
+| Resource | Operations |
+|----------|------------|
+| **Keywords** | List, Add, Delete, Toggle Star, Bulk Update Status, Trigger Research, Poll Research Job, List Groups |
+| **Backlinks** | List Campaigns, Create Campaign, Get Campaign, List Opportunities, Get Recommendations, Get/Update Opportunity, Generate Email, Send Email |
+| **Content** | List/Get/Create/Update/Delete Article, Trigger Generation, Get Calendar, Get/Update Automation |
+| **AI Visibility** | Brand Radar (List/Create/Delete/Update/Results), Prompt Research (List/Create/Get), AI Score |
+| **Analytics** | Website (Summary/Daily/Top Pages/Referrers/Devices/Browsers/Geo), Search Console (Daily/Keywords/Pages), Bot Traffic (Summary/Daily/Top Pages) |
+| **Utilities** | Verify Credentials, Connect CMS, Track Bot Hit |
+
+The node can be used as an AI tool inside n8n's AI Agent nodes (`usableAsTool: true`), so an LLM agent can call Keupera operations directly.
+
+## Example: auto-publish on keyword research completion
+
+A common workflow:
+
+1. **Schedule Trigger** → every weekday at 9am
+2. **Keupera → Keywords → Trigger Research** with a seed keyword
+3. **Wait** → 60 seconds
+4. **Keupera → Keywords → Poll Research Job** → use the `job_id` from step 2
+5. **IF** `status === "completed"` → continue, otherwise loop back to wait
+6. **Keupera → Content → Create Article** using the top keyword as `keyword_id`
+7. **Keupera → Content → Trigger Generation** on the new article
+
+## Resources
+
+- npm package: [`n8n-nodes-keupera`](https://www.npmjs.com/package/n8n-nodes-keupera)
+- Source: [`github.com/keupera/n8n-nodes-keupera`](https://github.com/keupera/n8n-nodes-keupera)
+- API reference: [Keupera Public API](/api-reference/introduction)
