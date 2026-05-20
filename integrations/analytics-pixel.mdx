@@ -3,7 +3,7 @@ title: "Web analytics pixel"
 description: "Install the cookieless Keupera tracker to power the Analytics module."
 ---
 
-The Keupera tracker is a lightweight (<2 KB), cookieless JavaScript snippet that streams pageviews into the [Analytics](/features/analytics) module. It populates the **Website** summary, daily traffic, top pages, referrers, devices, browsers, and geo breakdowns.
+The Keupera tracker is a lightweight (under 2 KB), cookieless JavaScript snippet that streams pageviews into the [Analytics](/features/analytics) module. It populates the **Website** summary, daily traffic, top pages, referrers, devices, browsers, and geo breakdowns.
 
 ## How it works
 
@@ -52,28 +52,21 @@ That's the whole install. The script self-initialises on `DOMContentLoaded` and 
     Install the **Keupera** plugin from the Framer marketplace and paste your Tracking key. The plugin handles the snippet injection.
   </Accordion>
   <Accordion icon="code" title="Next.js / React">
-    Add the snippet to your root layout (`app/layout.tsx`) using `next/script`:
+    Add the following to your root layout (`app/layout.tsx`). Set `NEXT_PUBLIC_KEUPERA_TRACKING_KEY` in your `.env.local`.
 
-    ```tsx
-    import Script from "next/script";
-
-    export default function RootLayout({ children }: { children: React.ReactNode }) {
-      return (
-        <html>
-          <head>
-            <Script id="keupera-key" strategy="beforeInteractive">
-              {`window.KEUPERA_API_KEY = "${process.env.NEXT_PUBLIC_KEUPERA_TRACKING_KEY}";`}
-            </Script>
-            <Script
-              src="https://zone-2.cdn.keupera.com/public/scripts/analytics/tracker.js"
-              strategy="afterInteractive"
-            />
-          </head>
-          <body>{children}</body>
-        </html>
-      );
-    }
+    ```html
+    <!-- Place in your root <head> -->
+    <script>
+      window.KEUPERA_API_KEY = process.env.NEXT_PUBLIC_KEUPERA_TRACKING_KEY;
+    </script>
+    <script
+      src="https://zone-2.cdn.keupera.com/public/scripts/analytics/tracker.js"
+      async
+      defer
+    ></script>
     ```
+
+    Or use `next/script` — set `window.KEUPERA_API_KEY` in a `beforeInteractive` Script and load the tracker with `strategy="afterInteractive"`.
   </Accordion>
   <Accordion icon="globe" title="Webflow / Squarespace / Wix">
     Add the snippet in **Site Settings → Custom Code → Header**. The exact path varies per builder but every modern site builder supports a global `<head>` injection field.
