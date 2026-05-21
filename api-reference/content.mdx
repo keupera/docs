@@ -102,11 +102,23 @@ PATCH /articles/:id
   "status": "planned",
   "date": "2024-03-01",
   "article_type": "how-to",
-  "meta_description": "A comprehensive guide to..."
+  "meta_description": "A comprehensive guide to...",
+  "featured_image": "https://cdn.example.com/cover.jpg"
 }
 ```
 
-Allowed fields: `title`, `content`, `status`, `meta_title`, `meta_description`, `slug`, `cover_image_url`, `keyword_id`, `scheduled_at`.
+| Field | Type | Description |
+|-------|------|-------------|
+| `title` | string | Article title |
+| `article_type` | string | `standard`, `listicle`, `how-to`, etc. |
+| `status` | string | `planned`, `queued`, `in-progress`, `completed`, `published` |
+| `content` | string | Article body (HTML) |
+| `meta_description` | string | SEO meta description |
+| `slug` | string | URL slug |
+| `featured_image` | string | Cover image URL |
+| `published_at` | string | Publish date (ISO) |
+| `scheduled_publish_at` | string | Scheduled publish date (ISO) |
+| `date` | string | Shortcut — sets both `published_at` and `scheduled_publish_at` |
 
 ## Delete an article
 

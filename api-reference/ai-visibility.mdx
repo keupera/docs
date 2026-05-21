@@ -49,22 +49,40 @@ POST /brand-radar/campaigns
 ```json
 {
   "website_id": "uuid",
-  "name": "Q4 monitoring",
-  "prompts": ["best running shoes 2026", "top trail running gear"],
-  "frequency": "weekly"
+  "prompt": "best project management tools",
+  "brands": [
+    { "name": "MyBrand", "domain": "mybrand.com" }
+  ],
+  "competitors": [
+    { "name": "Competitor", "domain": "competitor.com" }
+  ],
+  "frequency": 7,
+  "languages": ["en", "de"]
 }
 ```
 
-| Field | Required | Description |
-|-------|----------|-----------|
-| `name` | Yes | Campaign name |
-| `prompts` | Yes | Array of prompts/queries to track |
-| `frequency` | No | Run frequency: `daily`, `weekly`, `monthly` (default `weekly`) |
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `prompt` | string | Yes | The search prompt/query to monitor across LLMs |
+| `brands` | array | Yes | Array of brand objects (`{ name, domain }`) to track mentions for |
+| `competitors` | array | No | Array of competitor objects (`{ name, domain }`) to track alongside |
+| `frequency` | integer | No | Run frequency in days (default `7`) |
+| `languages` | array | No | Language codes to run the prompt in (default `["en"]`, max 3) |
 
 #### Response (201)
 
 ```json
-{ "data": { "id": "uuid", "name": "...", "status": "active" } }
+{
+  "data": {
+    "id": "uuid",
+    "prompt": "best project management tools",
+    "brands": [{ "name": "MyBrand", "domain": "mybrand.com" }],
+    "competitors": [{ "name": "Competitor", "domain": "competitor.com" }],
+    "frequency": 7,
+    "languages": ["en", "de"],
+    "status": "active"
+  }
+}
 ```
 
 ### Delete a campaign
@@ -175,15 +193,17 @@ POST /prompt-research/campaigns
 ```json
 {
   "website_id": "uuid",
-  "name": "Top-of-funnel",
-  "prompts": ["how to choose running shoes", "best running shoes for beginners"]
+  "custom_prompt": "What are the best SEO tools for small businesses?",
+  "frequency": 7,
+  "languages": ["en"]
 }
 ```
 
-| Field | Required | Description |
-|-------|----------|-----------|
-| `name` | Yes | Campaign name |
-| `prompts` | Yes | Array of prompts to research and cluster |
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `custom_prompt` | string | Yes | The prompt to research across AI models |
+| `frequency` | integer | No | Run frequency in days (default `7`) |
+| `languages` | array | No | Language codes (default `["en"]`, max 3) |
 
 ### Get campaign details + results
 
