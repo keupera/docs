@@ -1,0 +1,78 @@
+---
+title: "Authentication"
+description: "How the Keupera MCP server authenticates clients — OAuth sign-in and API keys — and what access a connected app gets."
+---
+
+The Keupera MCP server accepts two credential types on the same endpoint
+(`https://mcp.keupera.com/mcp`). Both act as **you** against your workspace.
+
+| Method | Best for | Setup |
+|--------|----------|-------|
+| **Sign in with Keupera (OAuth)** | Claude, Claude Code, Cursor, desktop & web clients | None — the client runs the flow |
+| **API key** (`sk_live_…`) | Scripts, servers, headless / CI | Create a key in the dashboard |
+
+## Sign in with Keupera (OAuth)
+
+When your client connects, it sends you to Keupera to sign in and approve access:
+
+<Steps>
+  <Step title="Your client opens Keupera">
+    The MCP client (Claude, Cursor, …) opens a browser to the Keupera sign-in.
+  </Step>
+  <Step title="Review the consent screen">
+    You'll see which app is requesting access, whether it's **verified**, the
+    domain you'll be returned to, and what it can do. Approve only apps you
+    started yourself.
+  </Step>
+  <Step title="You're connected">
+    Keupera issues the client a token. The client stores it securely and
+    refreshes it automatically — you won't be asked again until you revoke it.
+  </Step>
+</Steps>
+
+<Warning>
+  Third-party apps that aren't on Keupera's verified list show an **"Unverified
+  third-party app"** notice on the consent screen. That's normal for most
+  clients — but never approve a request you didn't initiate.
+</Warning>
+
+There's nothing to configure on your side: no client IDs, no secrets. Your
+client handles registration and the PKCE flow automatically.
+
+## API key
+
+For non-interactive use, send your key as a bearer token:
+
+```
+Authorization: Bearer sk_live_xxxxxxxxxxxxxxxx
+```
+
+Create and manage keys under **Settings → API Keys** in the
+[dashboard](https://app.keupera.com).
+
+<Warning>
+  Treat API keys like passwords. Never embed one in a browser or client-side
+  app — keep it server-side. Revoke a leaked key from **Settings → API Keys**.
+</Warning>
+
+## What a connected app can do
+
+A connected client acts with your account's permissions and is subject to the
+same plan quotas (`crawl_credits`, `ai_credits`, …) as the dashboard. It can
+read your data and, unless restricted, create and update keywords, content,
+backlinks, and campaigns.
+
+<Note>
+  Depending on your workspace settings, **OAuth-connected apps may be limited**
+  to reading and writing, with **deleting and sending outreach email disabled**.
+  Personal API keys are never restricted. Ask your workspace owner if an action
+  is blocked.
+</Note>
+
+## Revoke access
+
+- **OAuth apps:** **Account → Developer → Connected apps** in the dashboard —
+  click **Revoke** on any app. This invalidates its tokens immediately.
+- **API keys:** **Settings → API Keys** → revoke the key.
+- **From the client:** most clients also let you disconnect (e.g. Claude Code
+  `/mcp → Clear authentication`, or remove the connector in claude.ai).

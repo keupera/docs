@@ -1,0 +1,98 @@
+---
+title: "Available tools"
+description: "Every tool the Keupera MCP server exposes, grouped by module."
+---
+
+Once connected, the assistant has access to the tools below. Each maps to a
+[Public API](/api-reference/introduction) endpoint and runs as your account.
+
+<Tip>
+  Start a session with **`keupera_me`** to confirm the connection and see the
+  active account.
+</Tip>
+
+## Utilities
+
+| Tool | What it does |
+|------|--------------|
+| `keupera_me` | Return the authenticated user's profile. Use first to verify the connection. |
+| `keupera_connect_framer` | Register the connection with a Framer plugin install. |
+| `keupera_connect_wordpress` | Connect a WordPress site so Keupera can publish to it. |
+
+## Keywords
+
+| Tool | What it does |
+|------|--------------|
+| `keupera_list_keywords` | List tracked keywords with volume, difficulty, CPC, intent, opportunity. |
+| `keupera_add_keywords` | Add keywords to tracking (auto-enriches when volume is omitted). |
+| `keupera_delete_keywords` | Remove keywords by id. |
+| `keupera_star_keyword` | Star or unstar a keyword. |
+| `keupera_update_keywords_status` | Bulk update keyword status (e.g. archive). |
+| `keupera_research_keywords` | Run an AI + DataForSEO research job (async; returns a `job_id`). |
+| `keupera_get_keyword_research_job` | Poll a keyword research job. |
+| `keupera_list_keyword_groups` | List keyword groups. |
+
+## Backlinks
+
+| Tool | What it does |
+|------|--------------|
+| `keupera_list_backlink_campaigns` | List backlink research campaigns. |
+| `keupera_create_backlink_campaign` | Create a campaign (queues research in the background). |
+| `keupera_get_backlink_campaign` | Fetch a campaign by id. |
+| `keupera_list_backlink_opportunities` | List discovered opportunities for a campaign. |
+| `keupera_get_backlink_recommendations` | AI strategy recommendations for a campaign. |
+| `keupera_get_backlink_opportunity` | Fetch a single opportunity. |
+| `keupera_update_backlink_opportunity` | Update status, notes, contact, or outreach state. |
+| `keupera_generate_outreach_email` | AI-draft a personalized outreach email. |
+| `keupera_send_outreach_email` | Send the outreach email via the org's SMTP. |
+
+## Content
+
+| Tool | What it does |
+|------|--------------|
+| `keupera_list_articles` | List articles in the content library. |
+| `keupera_create_article` | Create an article manually or with AI generation. |
+| `keupera_get_article` | Fetch an article by id. |
+| `keupera_update_article` | Update article metadata or body. |
+| `keupera_delete_article` | Delete an article. |
+| `keupera_generate_article_content` | Re-generate a draft article's body. |
+| `keupera_get_editorial_calendar` | Scheduled articles grouped by date. |
+| `keupera_list_automation_jobs` | List automation jobs (auto-publish, RSS, etc.). |
+| `keupera_update_automation` | Update automation settings. |
+
+## AI visibility
+
+| Tool | What it does |
+|------|--------------|
+| `keupera_get_ai_visibility_score` | Latest AI-visibility score. |
+| `keupera_list_brand_radar_campaigns` | List Brand Radar campaigns. |
+| `keupera_create_brand_radar_campaign` | Monitor brand mentions across LLM providers. |
+| `keupera_delete_brand_radar_campaign` | Delete a Brand Radar campaign. |
+| `keupera_get_brand_radar_results` | Mention / visibility results across providers. |
+| `keupera_list_prompt_research_campaigns` | List prompt research campaigns. |
+| `keupera_create_prompt_research_campaign` | Create a prompt research campaign. |
+| `keupera_get_prompt_research_campaign` | Get a campaign and its results. |
+
+## Analytics
+
+| Tool | What it does |
+|------|--------------|
+| `keupera_get_website_summary` | Visitors, page views, sessions, bounce rate. |
+| `keupera_get_website_daily` | Daily time-series of summary metrics. |
+| `keupera_get_website_top_pages` | Most-visited pages. |
+| `keupera_get_website_referrers` | Top referrers. |
+| `keupera_get_website_devices` | Device-type breakdown. |
+| `keupera_get_website_browsers` | Browser breakdown. |
+| `keupera_get_website_geo` | Visitors by country. |
+| `keupera_get_search_console_daily` | Daily clicks, impressions, CTR, position. |
+| `keupera_get_search_console_keywords` | Top organic search queries. |
+| `keupera_get_search_console_pages` | Top organic landing pages. |
+| `keupera_get_bot_traffic_summary` | Visits per AI bot (GPTBot, ClaudeBot, PerplexityBot…). |
+| `keupera_get_bot_traffic_daily` | Daily AI-bot visits per bot. |
+| `keupera_get_bot_traffic_top_pages` | Pages most visited by AI bots. |
+
+<Note>
+  Some tools consume credits (keyword research, backlink campaigns, AI content
+  generation, outreach drafting). Your assistant should confirm before spending
+  credits or performing destructive actions.
+</Note>

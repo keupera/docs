@@ -103,6 +103,38 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "MCP Server",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "mcp/introduction"
+            ]
+          },
+          {
+            "group": "Connect",
+            "pages": [
+              "mcp/claude",
+              "mcp/claude-code",
+              "mcp/other-clients"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "mcp/authentication",
+              "mcp/workflows"
+            ]
+          },
+          {
+            "group": "Reference",
+            "pages": [
+              "mcp/tools"
+            ]
+          }
+        ]
       }
     ],
     "global": {

@@ -1,0 +1,62 @@
+---
+title: "Claude.ai & Claude Desktop"
+description: "Add Keupera as a custom connector in Claude on the web or desktop."
+---
+
+Connect Keupera to Claude on [claude.ai](https://claude.ai) or the Claude
+Desktop app as a **custom connector**. You authorize with your Keupera account
+in the browser — no API key needed.
+
+## Add the connector
+
+<Steps>
+  <Step title="Open connector settings">
+    In Claude, go to **Settings → Connectors** and click **Add custom
+    connector**.
+  </Step>
+  <Step title="Enter the Keupera server">
+    - **Name:** `Keupera`
+    - **URL:** `https://mcp.keupera.com/mcp`
+
+    Then click **Add**.
+  </Step>
+  <Step title="Connect and authorize">
+    Click **Connect**. A browser window opens to sign in to Keupera and an
+    **Authorize access** screen — click **Allow**. Claude returns to the
+    connector, now showing the Keupera tools.
+  </Step>
+</Steps>
+
+<Note>
+  Custom connectors call your MCP server from Anthropic's cloud, so the
+  connection works the same on web and desktop. Your access is stored securely
+  by Claude and refreshed automatically.
+</Note>
+
+## Use it
+
+Ask Claude naturally, for example:
+
+- *"Research keywords for 'vegan protein powder' and add the best 10 to tracking."*
+- *"How visible is my brand in ChatGPT and Perplexity this month?"*
+- *"Draft an article for my top-opportunity keyword and schedule it for Monday."*
+
+## Manage access
+
+- **Disconnect:** Settings → Connectors → Keupera → remove.
+- **Revoke from Keupera:** **Account → Developer → Connected apps** in the dashboard.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="The tools don't appear after connecting">
+    Re-open Settings → Connectors and confirm Keupera shows as connected. If not,
+    remove it and add it again, making sure the URL is exactly
+    `https://mcp.keupera.com/mcp`.
+  </Accordion>
+  <Accordion title="Authorization window closes without connecting">
+    Make sure you completed the Keupera sign-in and clicked **Allow** on the
+    consent screen. Pop-up blockers can interrupt the flow — allow pop-ups for
+    claude.ai and retry.
+  </Accordion>
+</AccordionGroup>

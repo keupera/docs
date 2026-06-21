@@ -1,0 +1,55 @@
+---
+title: "MCP Server"
+description: "Connect AI agents and IDEs to your Keupera workspace over the Model Context Protocol."
+---
+
+The **Keupera MCP server** exposes the Keupera Public API as [Model Context
+Protocol](https://modelcontextprotocol.io) tools, so AI agents and IDEs —
+Claude, Claude Code, Cursor, VS Code, Windsurf, and any MCP-capable client — can
+read and write your Keupera workspace directly: tracked keywords, backlinks,
+content, analytics, Search Console, and AI-visibility (Brand Radar).
+
+## Endpoint
+
+```
+https://mcp.keupera.com/mcp
+```
+
+Transport is **Streamable HTTP**. The same endpoint serves every client.
+
+## Authentication
+
+You can connect in one of two ways — both map to the same workspace:
+
+<CardGroup cols={2}>
+  <Card title="Sign in with Keupera (OAuth)" icon="key">
+    Authorize in the browser, no key to copy. Best for desktop and web clients.
+  </Card>
+  <Card title="API key" icon="lock">
+    Send your `sk_live_…` key as a Bearer token. Best for scripts and headless setups.
+  </Card>
+</CardGroup>
+
+Generate API keys from **Settings → API Keys** in your
+[Keupera dashboard](https://app.keupera.com). OAuth requires no setup on your
+side — your client walks you through it.
+
+## Connect your client
+
+<CardGroup cols={3}>
+  <Card title="Claude.ai & Desktop" icon="comment" href="/mcp/claude" />
+  <Card title="Claude Code" icon="terminal" href="/mcp/claude-code" />
+  <Card title="Other clients" icon="plug" href="/mcp/other-clients" />
+</CardGroup>
+
+## What you can do
+
+Once connected, your assistant can run keyword research, draft and schedule
+articles, build backlink campaigns and outreach, pull analytics and Search
+Console data, and track AI-visibility across LLMs. See the full
+[tool reference](/mcp/tools).
+
+<Note>
+  All actions run as **you** and respect your plan's quotas and permissions,
+  exactly as if you performed them in the dashboard.
+</Note>

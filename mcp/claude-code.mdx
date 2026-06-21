@@ -1,0 +1,66 @@
+---
+title: "Claude Code"
+description: "Connect Keupera to the Claude Code CLI with OAuth or an API key."
+---
+
+[Claude Code](https://code.claude.com) connects to the Keupera MCP server over
+HTTP. Use OAuth to sign in via the browser, or an API key for a headless setup.
+
+<Note>
+  Requires a recent Claude Code. Run `claude --version`; if `/mcp` is missing,
+  update first.
+</Note>
+
+## Option A — OAuth (sign in)
+
+<Steps>
+  <Step title="Add the server">
+    ```bash
+    claude mcp add --transport http keupera https://mcp.keupera.com/mcp -s user
+    ```
+    `-s user` makes Keupera available in every project. Drop it to add it only
+    to the current project.
+  </Step>
+  <Step title="Authorize">
+    Start Claude Code and run:
+    ```
+    /mcp
+    ```
+    Select **keupera → Authenticate**. Your browser opens to sign in to Keupera
+    and **Allow** access. Claude Code stores the token and refreshes it
+    automatically.
+  </Step>
+</Steps>
+
+## Option B — API key
+
+```bash
+claude mcp add --transport http keupera https://mcp.keupera.com/mcp \
+  --header "Authorization: Bearer sk_live_your_key" \
+  -s user
+```
+
+Get your key from **Settings → API Keys** in the
+[dashboard](https://app.keupera.com).
+
+## Verify and use
+
+Run `/mcp` to confirm `keupera` is connected, then ask, for example:
+*"List my tracked keywords by opportunity and draft an article for the top one."*
+
+To disconnect: `/mcp → keupera → Clear authentication`, or
+`claude mcp remove keupera`.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Authentication doesn't start / tools missing">
+    Run `/mcp` and select **Authenticate** again. If it still fails, remove and
+    re-add the server: `claude mcp remove keupera` then repeat the add command.
+  </Accordion>
+  <Accordion title="401 or 'unauthorized' errors">
+    Your session or key is invalid. For OAuth, re-run `/mcp → Authenticate`. For
+    an API key, confirm the `sk_live_…` value and that your plan includes API
+    access.
+  </Accordion>
+</AccordionGroup>
