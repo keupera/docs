@@ -1,0 +1,49 @@
+---
+title: "Goose"
+description: "Connect Keupera to Goose as a Streamable HTTP extension."
+---
+
+[Goose](https://block.github.io/goose) connects to the Keupera MCP server as a
+**Streamable HTTP extension**. Authorize with OAuth (browser sign-in) or an API
+key.
+
+## Add the extension
+
+<Steps>
+  <Step title="Open extension settings">
+    In Goose Desktop, go to **Settings → Extensions → Add** — or run
+    `goose configure` and choose **Add Extension** in the terminal.
+  </Step>
+  <Step title="Choose Streamable HTTP">
+    Pick **Remote Extension (Streamable HTTP)** and enter the endpoint
+    `https://mcp.keupera.com/mcp`.
+  </Step>
+  <Step title="Authorize">
+    Sign in to Keupera in the browser when prompted. To use an API key instead,
+    add an `Authorization: Bearer sk_live_your_key` header.
+  </Step>
+</Steps>
+
+Get your key from **Settings → API Keys** in the
+[dashboard](https://app.keupera.com).
+
+## Use it
+
+Confirm the Keupera extension is enabled, then ask, for example:
+*"Show my top keyword opportunities and outline an article for the best one."*
+
+[Goose extensions docs →](https://block.github.io/goose/docs/getting-started/using-extensions)
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Extension won't connect">
+    Confirm you selected **Remote Extension (Streamable HTTP)** and the endpoint
+    is exactly `https://mcp.keupera.com/mcp`. Toggle the extension off and on to
+    reconnect.
+  </Accordion>
+  <Accordion title="401 or 'unauthorized' errors">
+    For OAuth, re-authorize from the extension settings. For an API key, confirm
+    the `sk_live_…` value and that your plan includes API access.
+  </Accordion>
+</AccordionGroup>

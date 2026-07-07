@@ -2,12 +2,21 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Keupera Public API",
-    "description": "Programmatic access to Keupera's Keyword Research, Backlinks, Content, AI Visibility, and Analytics modules.",
-    "version": "1.0.0"
+    "version": "1.0.0",
+    "description": "Programmatic access to every major Keupera module — Keyword Research, Backlinks, Content, AI Visibility, and Analytics.\n\nAll endpoints are served under `https://app.keupera.com/api/v1` and authenticated with a Bearer API key. Responses are JSON and follow a consistent `{ \"data\": ... }` envelope, with list endpoints adding a `meta` object for pagination.",
+    "contact": {
+      "name": "Keupera Support",
+      "email": "ask@support.keupera.com",
+      "url": "https://keupera.com"
+    },
+    "x-logo": {
+      "url": "/logo/light.svg"
+    }
   },
   "servers": [
     {
-      "url": "https://app.keupera.com/api/v1"
+      "url": "https://app.keupera.com/api/v1",
+      "description": "Production"
     }
   ],
   "security": [
@@ -15,20 +24,64 @@
       "bearerAuth": []
     }
   ],
+  "tags": [
+    {
+      "name": "Keywords",
+      "description": "Research, enrich, and manage keywords and keyword groups. List, add, delete, star, bulk-update status, trigger AI keyword research jobs, and organize keywords into groups."
+    },
+    {
+      "name": "Backlinks",
+      "description": "Run backlink research campaigns, manage the opportunities discovered for each campaign, and generate or send personalized outreach emails."
+    },
+    {
+      "name": "Content",
+      "description": "Plan, generate, update, and publish AI-written articles across the full content pipeline, and configure per-website content automation."
+    },
+    {
+      "name": "AI Visibility",
+      "description": "Track how your brand and competitors appear across LLM answers via Brand Radar campaigns, the Prompt Research Engine, and a consolidated visibility score."
+    },
+    {
+      "name": "Analytics",
+      "description": "Query website traffic, cached Google Search Console data, and AI bot crawl activity for a website."
+    },
+    {
+      "name": "Account & Utilities",
+      "description": "Verify credentials, connect CMS integrations, and reference internal endpoints."
+    }
+  ],
   "paths": {
     "/keywords": {
       "get": {
+        "tags": ["Keywords"],
         "summary": "List keywords",
-        "description": "Returns paginated keywords for the authenticated website.",
+        "operationId": "listKeywords",
+        "description": "Returns a paginated list of keywords for the authenticated website.",
         "parameters": [
-          { "name": "website_id", "in": "query", "schema": { "type": "string", "format": "uuid" } },
-          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 100 } },
-          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
-          { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["active", "planned", "ignored"] } }
+          { "$ref": "#/components/parameters/WebsiteId" },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Results per page.",
+            "schema": { "type": "integer", "default": 100, "minimum": 1, "maximum": 500 }
+          },
+          { "$ref": "#/components/parameters/Page" },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter by keyword status.",
+            "schema": { "type": "string", "enum": ["active", "planned", "ignored"] }
+          },
+          {
+            "name": "group_id",
+            "in": "query",
+            "description": "Filter by keyword group ID.",
+            "schema": { "type": "string", "format": "uuid" }
+          }
         ],
         "responses": {
           "200": {
-            "description": "Paginated list of keywords",
+            "description": "Paginated list of keywords.",
             "content": {
               "application/json": {
                 "schema": {
@@ -41,53 +94,2340 @@
               }
             }
           },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      },
+      "post": {
+        "tags": ["Keywords"],
+        "summary": "Add keywords",
+        "operationId": "addKeywords",
+        "description": "Adds one or more keywords to a website. Set `enrich: true` to auto-fill volume, difficulty, CPC, and intent via DataForSEO — this consumes keyword research credits.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["keywords"],
+                "properties": {
+                  "website_id": { "type": "string", "format": "uuid", "description": "Target website. Defaults to the API key's website." },
+                  "keywords": {
+                    "type": "array",
+                    "description": "Keyword objects to add.",
+                    "items": { "$ref": "#/components/schemas/KeywordInput" }
+                  },
+                  "enrich": { "type": "boolean", "default": false, "description": "Auto-enrich keywords with volume and difficulty data." }
+                }
+              },
+              "example": {
+                "website_id": "b3f1c2d4-1111-2222-3333-444455556666",
+                "keywords": [
+                  { "term": "seo tools", "keyword_group": "SEO" },
+                  { "term": "keyword research", "volume": 5000, "difficulty": 30 }
+                ],
+                "enrich": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Keywords created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/Keyword" } },
+                    "count": { "type": "integer", "description": "Number of keywords created." }
+                  }
+                },
+                "example": {
+                  "data": [{ "id": "9a8b...", "term": "seo tools", "volume": 12000 }],
+                  "count": 2
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "402": { "$ref": "#/components/responses/PaymentRequired" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      },
+      "delete": {
+        "tags": ["Keywords"],
+        "summary": "Delete keywords",
+        "operationId": "deleteKeywords",
+        "description": "Deletes one or more keywords by ID.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["ids"],
+                "properties": {
+                  "website_id": { "type": "string", "format": "uuid" },
+                  "ids": { "type": "array", "items": { "type": "string", "format": "uuid" }, "description": "Keyword IDs to delete." }
+                }
+              },
+              "example": { "website_id": "b3f1...", "ids": ["uuid1", "uuid2"] }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Keywords deleted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "deleted": { "type": "integer", "description": "Number of keywords deleted." }
+                  }
+                },
+                "example": { "success": true, "deleted": 2 }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/keywords/{id}/star": {
+      "patch": {
+        "tags": ["Keywords"],
+        "summary": "Toggle keyword star",
+        "operationId": "toggleKeywordStar",
+        "description": "Stars or unstars a keyword.",
+        "parameters": [{ "$ref": "#/components/parameters/PathId" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["is_starred"],
+                "properties": { "is_starred": { "type": "boolean" } }
+              },
+              "example": { "is_starred": true }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Star toggled.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "success": { "type": "boolean" }, "is_starred": { "type": "boolean" } }
+                },
+                "example": { "success": true, "is_starred": true }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/keywords/status": {
+      "patch": {
+        "tags": ["Keywords"],
+        "summary": "Bulk update keyword status",
+        "operationId": "bulkUpdateKeywordStatus",
+        "description": "Updates the status of multiple keywords in a single request.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["ids", "status"],
+                "properties": {
+                  "ids": { "type": "array", "items": { "type": "string", "format": "uuid" } },
+                  "status": { "type": "string", "enum": ["active", "planned", "ignored"] }
+                }
+              },
+              "example": { "ids": ["uuid1", "uuid2"], "status": "planned" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Statuses updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "success": { "type": "boolean" }, "updated": { "type": "integer" } }
+                },
+                "example": { "success": true, "updated": 2 }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/keywords/research": {
+      "post": {
+        "tags": ["Keywords"],
+        "summary": "Trigger keyword research",
+        "operationId": "triggerKeywordResearch",
+        "description": "Generates keyword ideas using AI plus DataForSEO enrichment.\n\nThis is a **long-running job**. By default the endpoint returns a job handle immediately (`202 Accepted`) — poll `GET /keywords/research/{jobId}` with the returned `job_id` until `status` is `completed`. Pass `\"sync\": true` to wait inline, but this is not recommended as it is subject to gateway timeouts.\n\nConsumes keyword research credits.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["seed_keywords"],
+                "properties": {
+                  "website_id": { "type": "string", "format": "uuid" },
+                  "seed_keywords": { "type": "array", "items": { "type": "string" }, "description": "Seed terms to expand from." },
+                  "language": { "type": "string", "description": "Language code, e.g. `en`." },
+                  "country": { "type": "string", "description": "Country code, e.g. `US`." },
+                  "sync": { "type": "boolean", "default": false, "description": "Set `true` to wait for the inline result (not recommended)." }
+                }
+              },
+              "example": {
+                "website_id": "b3f1...",
+                "seed_keywords": ["seo tools", "content marketing"],
+                "language": "en",
+                "country": "US",
+                "sync": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Research job accepted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "job_id": { "type": "string" },
+                        "status": { "type": "string", "example": "pending" },
+                        "poll_url": { "type": "string" }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "data": { "job_id": "abc-uuid", "status": "pending", "poll_url": "/keywords/research/abc-uuid" }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "402": { "$ref": "#/components/responses/PaymentRequired" }
+        }
+      }
+    },
+    "/keywords/research/{jobId}": {
+      "get": {
+        "tags": ["Keywords"],
+        "summary": "Poll a research job",
+        "operationId": "pollKeywordResearchJob",
+        "description": "Returns the current state of a keyword research job. Poll until `status` is `completed` or `failed`.",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "description": "Job ID returned by `POST /keywords/research`.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Job state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "$ref": "#/components/schemas/ResearchJob" } }
+                },
+                "example": {
+                  "data": {
+                    "id": "abc-uuid",
+                    "status": "completed",
+                    "result": { "keywords": [] },
+                    "error": null,
+                    "created_at": "2024-01-15T10:00:00Z",
+                    "updated_at": "2024-01-15T10:01:30Z"
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/keywords/groups": {
+      "get": {
+        "tags": ["Keywords"],
+        "summary": "List keyword groups",
+        "operationId": "listKeywordGroups",
+        "description": "Returns all keyword groups for a website.",
+        "parameters": [{ "$ref": "#/components/parameters/WebsiteId" }],
+        "responses": {
+          "200": {
+            "description": "List of keyword groups.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/KeywordGroup" } }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/campaigns": {
+      "get": {
+        "tags": ["Backlinks"],
+        "summary": "List campaigns",
+        "operationId": "listCampaigns",
+        "description": "Returns all backlink campaigns for a website.",
+        "parameters": [{ "$ref": "#/components/parameters/WebsiteId" }],
+        "responses": {
+          "200": {
+            "description": "List of campaigns.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/Campaign" } }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      },
+      "post": {
+        "tags": ["Backlinks"],
+        "summary": "Create campaign",
+        "operationId": "createCampaign",
+        "description": "Creates a backlink research campaign. Opportunity research is triggered automatically in the background once the campaign is created. Consumes backlink research credits.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["keyword", "niche"],
+                "properties": {
+                  "website_id": { "type": "string", "format": "uuid" },
+                  "keyword": { "type": "string", "description": "Target keyword for backlink research." },
+                  "niche": { "type": "string", "description": "Industry / niche context." },
+                  "language": { "type": "string", "description": "Language code. Defaults to the website language." },
+                  "target_domain": { "type": "string", "description": "Domain to research backlinks for. Defaults to the website's own domain. Useful for a subdomain or partner site." }
+                }
+              },
+              "example": {
+                "website_id": "b3f1...",
+                "keyword": "seo tools",
+                "niche": "Digital Marketing",
+                "language": "en",
+                "target_domain": "myblog.com"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Campaign created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "$ref": "#/components/schemas/Campaign" } }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "402": { "$ref": "#/components/responses/PaymentRequired" }
+        }
+      }
+    },
+    "/campaigns/{id}": {
+      "get": {
+        "tags": ["Backlinks"],
+        "summary": "Get campaign details",
+        "operationId": "getCampaign",
+        "description": "Returns a single campaign, including research progress.",
+        "parameters": [{ "$ref": "#/components/parameters/PathId" }],
+        "responses": {
+          "200": {
+            "description": "Campaign detail.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "$ref": "#/components/schemas/Campaign" } }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/campaigns/{id}/opportunities": {
+      "get": {
+        "tags": ["Backlinks"],
+        "summary": "List campaign opportunities",
+        "operationId": "listCampaignOpportunities",
+        "description": "Returns backlink opportunities discovered for a campaign.",
+        "parameters": [{ "$ref": "#/components/parameters/PathId" }],
+        "responses": {
+          "200": {
+            "description": "List of opportunities.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/Opportunity" } }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/campaigns/{id}/recommendations": {
+      "get": {
+        "tags": ["Backlinks"],
+        "summary": "Get strategic recommendations",
+        "operationId": "getCampaignRecommendations",
+        "description": "Returns AI-generated link-building strategy recommendations for a campaign.",
+        "parameters": [{ "$ref": "#/components/parameters/PathId" }],
+        "responses": {
+          "200": {
+            "description": "Strategy recommendations.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "campaign_id": { "type": "string", "format": "uuid" },
+                        "strategies": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "title": { "type": "string" },
+                              "description": { "type": "string" },
+                              "difficulty": { "type": "string", "enum": ["low", "medium", "high"] },
+                              "impact": { "type": "string", "enum": ["low", "medium", "high"] }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "data": {
+                    "campaign_id": "uuid",
+                    "strategies": [
+                      { "title": "Guest Posting on Authority Blogs", "description": "Write high-quality guest posts...", "difficulty": "medium", "impact": "high" }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/opportunities/{id}": {
+      "get": {
+        "tags": ["Backlinks"],
+        "summary": "Get an opportunity",
+        "operationId": "getOpportunity",
+        "description": "Returns a single backlink opportunity, including its parent campaign context.",
+        "parameters": [{ "$ref": "#/components/parameters/PathId" }],
+        "responses": {
+          "200": {
+            "description": "Opportunity detail.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "$ref": "#/components/schemas/Opportunity" } }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "patch": {
+        "tags": ["Backlinks"],
+        "summary": "Update an opportunity",
+        "operationId": "updateOpportunity",
+        "description": "Updates the status, contact details, or notes on an opportunity.",
+        "parameters": [{ "$ref": "#/components/parameters/PathId" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": { "type": "string", "description": "Opportunity status." },
+                  "contact_email": { "type": "string", "format": "email" },
+                  "contact_name": { "type": "string" },
+                  "outreach_status": { "type": "string", "description": "Outreach progress status." },
+                  "notes": { "type": "string" }
+                }
+              },
+              "example": {
+                "status": "contacted",
+                "contact_email": "editor@target-site.com",
+                "contact_name": "John Doe",
+                "outreach_status": "email_sent",
+                "notes": "Sent initial outreach on Jan 15"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Opportunity updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "updated": { "type": "object", "additionalProperties": true }
+                  }
+                },
+                "example": { "success": true, "updated": { "status": "contacted", "contact_email": "editor@target-site.com" } }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/opportunities/{id}/generate-email": {
+      "post": {
+        "tags": ["Backlinks"],
+        "summary": "Generate an outreach email",
+        "operationId": "generateOutreachEmail",
+        "description": "Generates an AI-written, personalized outreach email for an opportunity. Consumes AI credits.",
+        "parameters": [{ "$ref": "#/components/parameters/PathId" }],
+        "responses": {
+          "200": {
+            "description": "Generated email content.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "opportunity_id": { "type": "string", "format": "uuid" },
+                        "email_text": { "type": "string" },
+                        "email_html": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "402": { "$ref": "#/components/responses/PaymentRequired" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/opportunities/{id}/send-email": {
+      "post": {
+        "tags": ["Backlinks"],
+        "summary": "Send an outreach email",
+        "operationId": "sendOutreachEmail",
+        "description": "Sends an outreach email for an opportunity via your organization's configured SMTP. Organization SMTP settings must be configured under **Settings** before sending. Updates the opportunity status to `outreach_sent`.",
+        "parameters": [{ "$ref": "#/components/parameters/PathId" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["to_email", "subject", "body_text"],
+                "properties": {
+                  "to_email": { "type": "string", "format": "email" },
+                  "subject": { "type": "string" },
+                  "body_text": { "type": "string", "description": "Plain text email body." },
+                  "body_html": { "type": "string", "description": "HTML email body." }
+                }
+              },
+              "example": {
+                "to_email": "editor@target-site.com",
+                "subject": "Partnership Opportunity — SEO Tools",
+                "body_text": "Hi John,\n\nI'd love to collaborate...",
+                "body_html": "<p>Hi John,</p><p>I'd love to collaborate...</p>"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Email queued for sending.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "message": { "type": "string" },
+                    "data": { "type": "object", "additionalProperties": true }
+                  }
+                },
+                "example": {
+                  "success": true,
+                  "message": "Email queued for sending. Opportunity status updated to outreach_sent.",
+                  "data": { "opportunity_id": "uuid", "to_email": "editor@target-site.com", "subject": "..." }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/articles": {
+      "get": {
+        "tags": ["Content"],
+        "summary": "List articles",
+        "operationId": "listArticles",
+        "description": "Returns a paginated list of articles for a website.",
+        "parameters": [
+          { "$ref": "#/components/parameters/WebsiteId" },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Results per page.",
+            "schema": { "type": "integer", "default": 20, "minimum": 1, "maximum": 100 }
+          },
+          { "$ref": "#/components/parameters/Page" },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter by article status.",
+            "schema": { "type": "string", "enum": ["planned", "queued", "in-progress", "completed", "published"] }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of articles.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/Article" } },
+                    "meta": { "$ref": "#/components/schemas/Meta" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      },
+      "post": {
+        "tags": ["Content"],
+        "summary": "Create an article",
+        "operationId": "createArticle",
+        "description": "Plans a new article. Provide either a `title` or a `keyword_id`. Optionally pass an `outline` for AI-assisted drafting and a `date` to schedule publishing.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "website_id": { "type": "string", "format": "uuid" },
+                  "title": { "type": "string", "description": "Article title. Required if no `keyword_id`." },
+                  "keyword_id": { "type": "string", "format": "uuid", "description": "Link to a keyword. Required if no `title`." },
+                  "outline": { "type": "string", "description": "Outline for AI-assisted drafting." },
+                  "date": { "type": "string", "description": "Schedule date (ISO or `YYYY-MM-DD`)." },
+                  "article_type": { "type": "string", "description": "e.g. `standard`, `listicle`, `how-to`." }
+                }
+              },
+              "example": {
+                "website_id": "b3f1...",
+                "title": "Ultimate Guide to SEO",
+                "keyword_id": "uuid",
+                "date": "2024-02-15",
+                "article_type": "listicle"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Article planned.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "$ref": "#/components/schemas/Article" } }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "402": { "$ref": "#/components/responses/PaymentRequired" }
+        }
+      }
+    },
+    "/articles/{id}": {
+      "get": {
+        "tags": ["Content"],
+        "summary": "Get an article",
+        "operationId": "getArticle",
+        "description": "Returns full article details, including linked keyword data.",
+        "parameters": [{ "$ref": "#/components/parameters/PathId" }],
+        "responses": {
+          "200": {
+            "description": "Article detail.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "$ref": "#/components/schemas/Article" } }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "patch": {
+        "tags": ["Content"],
+        "summary": "Update an article",
+        "operationId": "updateArticle",
+        "description": "Updates article fields. The `date` field is a shortcut that sets both `published_at` and `scheduled_publish_at`.",
+        "parameters": [{ "$ref": "#/components/parameters/PathId" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": { "type": "string" },
+                  "article_type": { "type": "string" },
+                  "status": { "type": "string", "enum": ["planned", "queued", "in-progress", "completed", "published"] },
+                  "content": { "type": "string", "description": "Article body (HTML)." },
+                  "meta_description": { "type": "string" },
+                  "slug": { "type": "string" },
+                  "featured_image": { "type": "string", "format": "uri" },
+                  "published_at": { "type": "string", "format": "date-time" },
+                  "scheduled_publish_at": { "type": "string", "format": "date-time" },
+                  "date": { "type": "string", "description": "Shortcut — sets both `published_at` and `scheduled_publish_at`." }
+                }
+              },
+              "example": {
+                "title": "Updated Title",
+                "status": "planned",
+                "date": "2024-03-01",
+                "article_type": "how-to",
+                "meta_description": "A comprehensive guide to...",
+                "featured_image": "https://cdn.example.com/cover.jpg"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Article updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "$ref": "#/components/schemas/Article" } }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "delete": {
+        "tags": ["Content"],
+        "summary": "Delete an article",
+        "operationId": "deleteArticle",
+        "description": "Deletes an article. If the article is linked to a keyword, the keyword status is reverted to `active`.",
+        "parameters": [{ "$ref": "#/components/parameters/PathId" }],
+        "responses": {
+          "200": {
+            "description": "Article deleted.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Success" },
+                "example": { "success": true }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/articles/{id}/generate": {
+      "post": {
+        "tags": ["Content"],
+        "summary": "Trigger article generation",
+        "operationId": "generateArticle",
+        "description": "Starts the AI content generation pipeline for a planned article. Consumes AI credits.",
+        "parameters": [{ "$ref": "#/components/parameters/PathId" }],
+        "responses": {
+          "200": {
+            "description": "Generation started.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "message": { "type": "string" },
+                    "article_id": { "type": "string", "format": "uuid" }
+                  }
+                },
+                "example": { "success": true, "message": "Article generation started", "article_id": "uuid" }
+              }
+            }
+          },
+          "400": {
+            "description": "Article is already being generated.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "402": { "$ref": "#/components/responses/PaymentRequired" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/articles/calendar": {
+      "get": {
+        "tags": ["Content"],
+        "summary": "Get calendar events",
+        "operationId": "getCalendarEvents",
+        "description": "Returns scheduled article events within a date range.",
+        "parameters": [
+          { "$ref": "#/components/parameters/WebsiteId" },
+          {
+            "name": "start",
+            "in": "query",
+            "required": true,
+            "description": "Start date (ISO format).",
+            "schema": { "type": "string", "format": "date" }
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "required": true,
+            "description": "End date (ISO format).",
+            "schema": { "type": "string", "format": "date" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Calendar events.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/CalendarEvent" } }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/automation": {
+      "get": {
+        "tags": ["Content"],
+        "summary": "Get automation settings",
+        "operationId": "getAutomationSettings",
+        "description": "Returns the content automation settings for a website.",
+        "parameters": [{ "$ref": "#/components/parameters/WebsiteId" }],
+        "responses": {
+          "200": {
+            "description": "Automation settings.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "$ref": "#/components/schemas/AutomationSettings" } }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      },
+      "patch": {
+        "tags": ["Content"],
+        "summary": "Update automation settings",
+        "operationId": "updateAutomationSettings",
+        "description": "Updates the content automation settings for a website.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  { "type": "object", "properties": { "website_id": { "type": "string", "format": "uuid" } } },
+                  { "$ref": "#/components/schemas/AutomationSettings" }
+                ]
+              },
+              "example": {
+                "website_id": "b3f1...",
+                "auto_generate": true,
+                "auto_publish": true,
+                "auto_plan_blog_posts": false,
+                "auto_plan_interval": "daily"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Settings updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "success": { "type": "boolean" }, "updated": { "type": "object", "additionalProperties": true } }
+                },
+                "example": { "success": true, "updated": { "auto_generate": true, "auto_publish": true } }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/blog-posts": {
+      "get": {
+        "tags": ["Content"],
+        "summary": "List blog posts (legacy)",
+        "operationId": "listBlogPosts",
+        "deprecated": true,
+        "description": "**Legacy.** Use `GET /articles` going forward.",
+        "parameters": [
+          { "$ref": "#/components/parameters/WebsiteId" },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": { "type": "integer", "default": 100 }
+          },
+          { "$ref": "#/components/parameters/Page" }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of blog posts.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+                    "meta": { "$ref": "#/components/schemas/Meta" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/blog-posts/{id}": {
+      "get": {
+        "tags": ["Content"],
+        "summary": "Get a blog post (legacy)",
+        "operationId": "getBlogPost",
+        "deprecated": true,
+        "description": "**Legacy.** Use `GET /articles/{id}` going forward.",
+        "parameters": [{ "$ref": "#/components/parameters/PathId" }],
+        "responses": {
+          "200": {
+            "description": "Blog post detail.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "type": "object", "additionalProperties": true } }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/brand-radar/campaigns": {
+      "get": {
+        "tags": ["AI Visibility"],
+        "summary": "List Brand Radar campaigns",
+        "operationId": "listBrandRadarCampaigns",
+        "description": "Returns all Brand Radar campaigns for a website.",
+        "parameters": [{ "$ref": "#/components/parameters/WebsiteId" }],
+        "responses": {
+          "200": {
+            "description": "List of campaigns.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/BrandRadarCampaign" } }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      },
+      "post": {
+        "tags": ["AI Visibility"],
+        "summary": "Create a Brand Radar campaign",
+        "operationId": "createBrandRadarCampaign",
+        "description": "Creates a Brand Radar campaign that monitors a prompt across LLMs and tracks brand and competitor mentions.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["prompt", "brands"],
+                "properties": {
+                  "website_id": { "type": "string", "format": "uuid" },
+                  "prompt": { "type": "string", "description": "The search prompt to monitor across LLMs." },
+                  "brands": {
+                    "type": "array",
+                    "description": "Brand objects to track mentions for.",
+                    "items": { "$ref": "#/components/schemas/BrandRef" }
+                  },
+                  "competitors": {
+                    "type": "array",
+                    "description": "Competitor objects to track alongside.",
+                    "items": { "$ref": "#/components/schemas/BrandRef" }
+                  },
+                  "frequency": { "type": "integer", "default": 7, "description": "Run frequency in days." },
+                  "languages": { "type": "array", "items": { "type": "string" }, "description": "Language codes to run the prompt in (max 3).", "default": ["en"] }
+                }
+              },
+              "example": {
+                "website_id": "b3f1...",
+                "prompt": "best project management tools",
+                "brands": [{ "name": "MyBrand", "domain": "mybrand.com" }],
+                "competitors": [{ "name": "Competitor", "domain": "competitor.com" }],
+                "frequency": 7,
+                "languages": ["en", "de"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Campaign created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "$ref": "#/components/schemas/BrandRadarCampaign" } }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "402": { "$ref": "#/components/responses/PaymentRequired" }
+        }
+      }
+    },
+    "/brand-radar/campaigns/{id}": {
+      "patch": {
+        "tags": ["AI Visibility"],
+        "summary": "Update a Brand Radar campaign",
+        "operationId": "updateBrandRadarCampaign",
+        "description": "Updates a Brand Radar campaign's frequency or status, or toggles competitor tracking.",
+        "parameters": [{ "$ref": "#/components/parameters/PathId" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "frequency": { "type": "integer" },
+                  "status": { "type": "string", "enum": ["active", "paused"] },
+                  "toggle_competitor": {
+                    "type": "object",
+                    "properties": {
+                      "name": { "type": "string" },
+                      "disabled": { "type": "boolean", "description": "`true` to disable, `false` to enable." }
+                    }
+                  }
+                }
+              },
+              "example": {
+                "frequency": 3,
+                "status": "paused",
+                "toggle_competitor": { "name": "CompetitorName", "disabled": true }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Campaign updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "$ref": "#/components/schemas/BrandRadarCampaign" } }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "delete": {
+        "tags": ["AI Visibility"],
+        "summary": "Delete a Brand Radar campaign",
+        "operationId": "deleteBrandRadarCampaign",
+        "description": "Deletes a Brand Radar campaign.",
+        "parameters": [{ "$ref": "#/components/parameters/PathId" }],
+        "responses": {
+          "200": {
+            "description": "Campaign deleted.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Success" },
+                "example": { "success": true }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/brand-radar/campaigns/{id}/results": {
+      "get": {
+        "tags": ["AI Visibility"],
+        "summary": "Get Brand Radar results",
+        "operationId": "getBrandRadarResults",
+        "description": "Returns the run results for a Brand Radar campaign, including mentions and visibility scores.",
+        "parameters": [
+          { "$ref": "#/components/parameters/PathId" },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of results to return.",
+            "schema": { "type": "integer", "default": 20 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Campaign results.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/BrandRadarResult" } }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/prompt-research/campaigns": {
+      "get": {
+        "tags": ["AI Visibility"],
+        "summary": "List Prompt Research campaigns",
+        "operationId": "listPromptResearchCampaigns",
+        "description": "Returns all Prompt Research Engine campaigns for a website.",
+        "parameters": [{ "$ref": "#/components/parameters/WebsiteId" }],
+        "responses": {
+          "200": {
+            "description": "List of campaigns.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/PromptResearchCampaign" } }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      },
+      "post": {
+        "tags": ["AI Visibility"],
+        "summary": "Create a Prompt Research campaign",
+        "operationId": "createPromptResearchCampaign",
+        "description": "Creates a Prompt Research Engine campaign that researches a custom prompt across AI models on a schedule.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["custom_prompt"],
+                "properties": {
+                  "website_id": { "type": "string", "format": "uuid" },
+                  "custom_prompt": { "type": "string", "description": "The prompt to research across AI models." },
+                  "frequency": { "type": "integer", "default": 7, "description": "Run frequency in days." },
+                  "languages": { "type": "array", "items": { "type": "string" }, "description": "Language codes (max 3).", "default": ["en"] }
+                }
+              },
+              "example": {
+                "website_id": "b3f1...",
+                "custom_prompt": "What are the best SEO tools for small businesses?",
+                "frequency": 7,
+                "languages": ["en"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Campaign created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "$ref": "#/components/schemas/PromptResearchCampaign" } }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "402": { "$ref": "#/components/responses/PaymentRequired" }
+        }
+      }
+    },
+    "/prompt-research/campaigns/{id}": {
+      "get": {
+        "tags": ["AI Visibility"],
+        "summary": "Get Prompt Research campaign",
+        "operationId": "getPromptResearchCampaign",
+        "description": "Returns a Prompt Research campaign together with its analyzed run results.",
+        "parameters": [{ "$ref": "#/components/parameters/PathId" }],
+        "responses": {
+          "200": {
+            "description": "Campaign detail and results.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "campaign": { "$ref": "#/components/schemas/PromptResearchCampaign" },
+                        "results": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": { "type": "string", "format": "uuid" },
+                              "campaign_id": { "type": "string", "format": "uuid" },
+                              "run_at": { "type": "string", "format": "date-time" },
+                              "analyzed_data": { "type": "object", "additionalProperties": true }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/score": {
+      "get": {
+        "tags": ["AI Visibility"],
+        "summary": "Get AI Visibility Score",
+        "operationId": "getVisibilityScore",
+        "description": "Returns an aggregated overview across all AI visibility sub-features — Brand Radar, Prompt Research, Authority, and Funnel.",
+        "parameters": [{ "$ref": "#/components/parameters/WebsiteId" }],
+        "responses": {
+          "200": {
+            "description": "Aggregated visibility overview.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "$ref": "#/components/schemas/VisibilityScore" } }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/website/summary": {
+      "get": {
+        "tags": ["Analytics"],
+        "summary": "Website summary",
+        "operationId": "getWebsiteSummary",
+        "description": "Returns aggregate web analytics from your Keupera tracking script.",
+        "parameters": [
+          { "$ref": "#/components/parameters/WebsiteId" },
+          { "$ref": "#/components/parameters/Range" },
+          { "$ref": "#/components/parameters/From" },
+          { "$ref": "#/components/parameters/To" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Website summary.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "$ref": "#/components/schemas/WebsiteSummary" } }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/website/daily": {
+      "get": {
+        "tags": ["Analytics"],
+        "summary": "Daily traffic",
+        "operationId": "getWebsiteDaily",
+        "description": "Returns daily traffic time series.",
+        "parameters": [
+          { "$ref": "#/components/parameters/WebsiteId" },
+          { "$ref": "#/components/parameters/Range" },
+          { "$ref": "#/components/parameters/From" },
+          { "$ref": "#/components/parameters/To" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Daily traffic series.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "date": { "type": "string", "format": "date" },
+                          "pageviews": { "type": "integer" },
+                          "visits": { "type": "integer" },
+                          "visitors": { "type": "integer" }
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": { "data": [{ "date": "2024-01-15", "pageviews": 1500, "visits": 800, "visitors": 650 }] }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/website/top-pages": {
+      "get": {
+        "tags": ["Analytics"],
+        "summary": "Top pages",
+        "operationId": "getWebsiteTopPages",
+        "description": "Returns the most-viewed pages.",
+        "parameters": [
+          { "$ref": "#/components/parameters/WebsiteId" },
+          { "$ref": "#/components/parameters/Range" },
+          { "$ref": "#/components/parameters/From" },
+          { "$ref": "#/components/parameters/To" },
+          { "$ref": "#/components/parameters/Limit20" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Top pages.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": { "type": "string" },
+                          "views": { "type": "integer" },
+                          "unique_visitors": { "type": "integer" }
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": { "data": [{ "path": "/blog/seo-guide", "views": 5200, "unique_visitors": 4100 }] }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/website/referrers": {
+      "get": {
+        "tags": ["Analytics"],
+        "summary": "Referrers",
+        "operationId": "getWebsiteReferrers",
+        "description": "Returns top traffic sources.",
+        "parameters": [
+          { "$ref": "#/components/parameters/WebsiteId" },
+          { "$ref": "#/components/parameters/Range" },
+          { "$ref": "#/components/parameters/From" },
+          { "$ref": "#/components/parameters/To" },
+          { "$ref": "#/components/parameters/Limit20" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Referrers.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "source": { "type": "string" },
+                          "views": { "type": "integer" },
+                          "visits": { "type": "integer" }
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": { "data": [{ "source": "google.com", "views": 8000, "visits": 6500 }] }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/website/devices": {
+      "get": {
+        "tags": ["Analytics"],
+        "summary": "Device breakdown",
+        "operationId": "getWebsiteDevices",
+        "description": "Returns traffic broken down by device type.",
+        "parameters": [
+          { "$ref": "#/components/parameters/WebsiteId" },
+          { "$ref": "#/components/parameters/Range" },
+          { "$ref": "#/components/parameters/From" },
+          { "$ref": "#/components/parameters/To" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Device breakdown.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "device": { "type": "string" },
+                          "views": { "type": "integer" },
+                          "visits": { "type": "integer" }
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": { "data": [{ "device": "Desktop", "views": 25000, "visits": 15000 }] }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/website/browsers": {
+      "get": {
+        "tags": ["Analytics"],
+        "summary": "Browser breakdown",
+        "operationId": "getWebsiteBrowsers",
+        "description": "Returns traffic broken down by browser.",
+        "parameters": [
+          { "$ref": "#/components/parameters/WebsiteId" },
+          { "$ref": "#/components/parameters/Range" },
+          { "$ref": "#/components/parameters/From" },
+          { "$ref": "#/components/parameters/To" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Browser breakdown.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "browser": { "type": "string" },
+                          "views": { "type": "integer" },
+                          "visits": { "type": "integer" }
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": { "data": [{ "browser": "Chrome", "views": 30000, "visits": 18000 }] }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/website/geo": {
+      "get": {
+        "tags": ["Analytics"],
+        "summary": "Geographic traffic",
+        "operationId": "getWebsiteGeo",
+        "description": "Returns traffic broken down by country.",
+        "parameters": [
+          { "$ref": "#/components/parameters/WebsiteId" },
+          { "$ref": "#/components/parameters/Range" },
+          { "$ref": "#/components/parameters/From" },
+          { "$ref": "#/components/parameters/To" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Geographic breakdown.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "country": { "type": "string" },
+                          "views": { "type": "integer" },
+                          "visits": { "type": "integer" }
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": { "data": [{ "country": "US", "views": 15000, "visits": 10000 }] }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/search-console/daily": {
+      "get": {
+        "tags": ["Analytics"],
+        "summary": "Search Console daily stats",
+        "operationId": "getSearchConsoleDaily",
+        "description": "Returns cached Google Search Console daily performance.",
+        "parameters": [
+          { "$ref": "#/components/parameters/WebsiteId" },
+          { "$ref": "#/components/parameters/Range" },
+          { "$ref": "#/components/parameters/From" },
+          { "$ref": "#/components/parameters/To" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Daily Search Console stats.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/SearchConsoleDaily" } }
+                  }
+                },
+                "example": { "data": [{ "date": "2024-01-15", "clicks": 250, "impressions": 12000, "ctr": 2.08, "position": 15.3 }] }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/search-console/keywords": {
+      "get": {
+        "tags": ["Analytics"],
+        "summary": "Search Console top keywords",
+        "operationId": "getSearchConsoleKeywords",
+        "description": "Returns top-performing keywords from Google Search Console.",
+        "parameters": [
+          { "$ref": "#/components/parameters/WebsiteId" },
+          { "$ref": "#/components/parameters/Range" },
+          { "$ref": "#/components/parameters/From" },
+          { "$ref": "#/components/parameters/To" },
+          { "$ref": "#/components/parameters/Limit100" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Top keywords.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "keyword": { "type": "string" },
+                          "clicks": { "type": "integer" },
+                          "impressions": { "type": "integer" },
+                          "ctr": { "type": "number" },
+                          "position": { "type": "number" }
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": { "data": [{ "keyword": "best seo tools", "clicks": 450, "impressions": 8500, "ctr": 5.29, "position": 4.2 }] }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/search-console/pages": {
+      "get": {
+        "tags": ["Analytics"],
+        "summary": "Search Console top pages",
+        "operationId": "getSearchConsolePages",
+        "description": "Returns top-performing pages from Google Search Console.",
+        "parameters": [
+          { "$ref": "#/components/parameters/WebsiteId" },
+          { "$ref": "#/components/parameters/Range" },
+          { "$ref": "#/components/parameters/From" },
+          { "$ref": "#/components/parameters/To" },
+          { "$ref": "#/components/parameters/Limit100" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Top pages.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "page": { "type": "string" },
+                          "clicks": { "type": "integer" },
+                          "impressions": { "type": "integer" },
+                          "ctr": { "type": "number" },
+                          "position": { "type": "number" }
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": { "data": [{ "page": "https://example.com/blog/seo-guide", "clicks": 800, "impressions": 15000, "ctr": 5.33, "position": 6.1 }] }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/bot-traffic/summary": {
+      "get": {
+        "tags": ["Analytics"],
+        "summary": "Bot traffic summary",
+        "operationId": "getBotTrafficSummary",
+        "description": "Returns AI bot crawl activity aggregated by bot.",
+        "parameters": [
+          { "$ref": "#/components/parameters/WebsiteId" },
+          { "$ref": "#/components/parameters/Range" },
+          { "$ref": "#/components/parameters/From" },
+          { "$ref": "#/components/parameters/To" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bot traffic summary.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "bots": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "bot_name": { "type": "string" },
+                              "total_visits": { "type": "integer" }
+                            }
+                          }
+                        },
+                        "total_visits": { "type": "integer" }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "data": {
+                    "bots": [{ "bot_name": "GPTBot", "total_visits": 1500 }, { "bot_name": "ClaudeBot", "total_visits": 800 }],
+                    "total_visits": 7300
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/bot-traffic/daily": {
+      "get": {
+        "tags": ["Analytics"],
+        "summary": "Daily bot traffic",
+        "operationId": "getBotTrafficDaily",
+        "description": "Returns daily AI bot crawl activity per bot.",
+        "parameters": [
+          { "$ref": "#/components/parameters/WebsiteId" },
+          { "$ref": "#/components/parameters/Range" },
+          { "$ref": "#/components/parameters/From" },
+          { "$ref": "#/components/parameters/To" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Daily bot traffic.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "visit_date": { "type": "string", "format": "date" },
+                          "bot_name": { "type": "string" },
+                          "total_visits": { "type": "integer" }
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": { "data": [{ "visit_date": "2024-01-15", "bot_name": "GPTBot", "total_visits": 50 }] }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/bot-traffic/top-pages": {
+      "get": {
+        "tags": ["Analytics"],
+        "summary": "Top crawled pages",
+        "operationId": "getBotTrafficTopPages",
+        "description": "Returns the pages most crawled by AI bots.",
+        "parameters": [
+          { "$ref": "#/components/parameters/WebsiteId" },
+          { "$ref": "#/components/parameters/Range" },
+          { "$ref": "#/components/parameters/From" },
+          { "$ref": "#/components/parameters/To" },
+          { "$ref": "#/components/parameters/Limit20" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Top crawled pages.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": { "type": "string" },
+                          "total_visits": { "type": "integer" }
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": { "data": [{ "path": "/blog/seo-guide", "total_visits": 250 }] }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/me": {
+      "get": {
+        "tags": ["Account & Utilities"],
+        "summary": "Verify credentials",
+        "operationId": "getMe",
+        "description": "Returns basic profile info for the authenticated user. This endpoint skips the paid-tier check and works on any valid API key — use it to verify that a key is valid regardless of subscription tier.",
+        "responses": {
+          "200": {
+            "description": "Profile info.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "string", "format": "uuid" },
+                        "email": { "type": "string", "format": "email" },
+                        "full_name": { "type": "string" },
+                        "avatar_url": { "type": "string", "format": "uri" }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "data": { "id": "uuid", "email": "you@example.com", "full_name": "Jane Doe", "avatar_url": "https://..." }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/connect": {
+      "post": {
+        "tags": ["Account & Utilities"],
+        "summary": "Connect a CMS integration",
+        "operationId": "connectCms",
+        "description": "Registers a CMS integration against your API key. Used by the Framer plugin and WordPress connector.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["type"],
+                "properties": {
+                  "type": { "type": "string", "enum": ["framer", "wordpress"] },
+                  "site_url": { "type": "string", "format": "uri", "description": "WordPress only — your WordPress site URL." },
+                  "username": { "type": "string", "description": "WordPress only — admin username." },
+                  "app_password": { "type": "string", "description": "WordPress only — application password." }
+                }
+              },
+              "examples": {
+                "framer": { "summary": "Framer", "value": { "type": "framer" } },
+                "wordpress": {
+                  "summary": "WordPress",
+                  "value": { "type": "wordpress", "site_url": "https://example.com", "username": "admin", "app_password": "xxxx xxxx xxxx xxxx" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Integration connected.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Success" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" }
         }
       }
     }
   },
   "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Pass your Keupera API key as a Bearer token: `Authorization: Bearer YOUR_KEUPERA_API_KEY`. Generate keys from **Account → API Keys** in your Keupera dashboard."
+      }
+    },
+    "parameters": {
+      "WebsiteId": {
+        "name": "website_id",
+        "in": "query",
+        "description": "Target website. Defaults to the website bound to your API key. Must belong to one of your organizations.",
+        "schema": { "type": "string", "format": "uuid" }
+      },
+      "Page": {
+        "name": "page",
+        "in": "query",
+        "description": "Page number for paginated endpoints.",
+        "schema": { "type": "integer", "default": 1, "minimum": 1 }
+      },
+      "PathId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "description": "Resource ID.",
+        "schema": { "type": "string", "format": "uuid" }
+      },
+      "Limit20": {
+        "name": "limit",
+        "in": "query",
+        "description": "Number of results to return.",
+        "schema": { "type": "integer", "default": 20 }
+      },
+      "Limit100": {
+        "name": "limit",
+        "in": "query",
+        "description": "Number of results to return.",
+        "schema": { "type": "integer", "default": 100 }
+      },
+      "Range": {
+        "name": "range",
+        "in": "query",
+        "description": "Preset date range. Ignored when both `from` and `to` are provided.",
+        "schema": { "type": "string", "enum": ["7d", "30d", "90d"], "default": "30d" }
+      },
+      "From": {
+        "name": "from",
+        "in": "query",
+        "description": "Start date (`YYYY-MM-DD`).",
+        "schema": { "type": "string", "format": "date" }
+      },
+      "To": {
+        "name": "to",
+        "in": "query",
+        "description": "End date (`YYYY-MM-DD`).",
+        "schema": { "type": "string", "format": "date" }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Bad request — missing or invalid parameters.",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }, "example": { "error": "Missing required field: keywords" } } }
+      },
+      "Unauthorized": {
+        "description": "Unauthorized — missing or invalid API key.",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }, "example": { "error": "Invalid or missing API key" } } }
+      },
+      "PaymentRequired": {
+        "description": "Usage limit reached — crawl credits, AI credits, or other quota exhausted. Enable metered billing to allow overage.",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }, "example": { "error": "Usage limit reached for keyword_research" } } }
+      },
+      "Forbidden": {
+        "description": "Forbidden — inactive key, no API access on your plan, or the requested website is not yours.",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }, "example": { "error": "Your plan does not include Public API access" } } }
+      },
+      "NotFound": {
+        "description": "Not found — resource does not exist or is not accessible with this key.",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }, "example": { "error": "Resource not found" } } }
+      },
+      "ServerError": {
+        "description": "Internal server error.",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }, "example": { "error": "Internal server error" } } }
+      }
+    },
     "schemas": {
+      "Error": {
+        "type": "object",
+        "description": "Standard error envelope.",
+        "properties": { "error": { "type": "string", "description": "Descriptive error message." } }
+      },
+      "Success": {
+        "type": "object",
+        "properties": { "success": { "type": "boolean", "example": true } }
+      },
+      "Meta": {
+        "type": "object",
+        "description": "Pagination metadata.",
+        "properties": {
+          "total": { "type": "integer", "example": 150 },
+          "page": { "type": "integer", "example": 1 },
+          "limit": { "type": "integer", "example": 100 }
+        }
+      },
+      "KeywordInput": {
+        "type": "object",
+        "required": ["term"],
+        "properties": {
+          "term": { "type": "string", "description": "The keyword term. Alias: `keyword`." },
+          "keyword_group": { "type": "string", "description": "Group name (auto-created if new). Alias: `group`." },
+          "volume": { "type": "integer", "description": "Search volume. Auto-filled if `enrich: true`." },
+          "difficulty": { "type": "integer", "description": "Keyword difficulty (0–100)." },
+          "cpc": { "type": "number", "description": "Cost per click." },
+          "intent": { "type": "string", "description": "Search intent." },
+          "opportunity": { "type": "string", "enum": ["High", "Medium", "Low"], "description": "Opportunity level." },
+          "funnel_stage": { "type": "string", "enum": ["awareness", "consideration", "decision"] },
+          "language": { "type": "string", "description": "Language code." }
+        }
+      },
       "Keyword": {
         "type": "object",
         "properties": {
           "id": { "type": "string", "format": "uuid" },
-          "term": { "type": "string" },
-          "volume": { "type": "integer" },
-          "difficulty": { "type": "integer" },
-          "cpc": { "type": "number" },
-          "intent": { "type": "string" },
+          "term": { "type": "string", "example": "best seo tools" },
+          "volume": { "type": "integer", "example": 12000 },
+          "difficulty": { "type": "integer", "example": 45 },
+          "cpc": { "type": "number", "example": 2.5 },
+          "intent": { "type": "string", "example": "Commercial" },
+          "opportunity": { "type": "string", "example": "High" },
           "status": { "type": "string", "enum": ["active", "planned", "ignored"] },
           "is_starred": { "type": "boolean" },
-          "language": { "type": "string" },
+          "funnel_stage": { "type": "string", "example": "consideration" },
+          "language": { "type": "string", "example": "en" },
+          "group_id": { "type": "string", "format": "uuid", "nullable": true },
+          "keyword_groups": {
+            "type": "object",
+            "nullable": true,
+            "properties": { "id": { "type": "string", "format": "uuid" }, "name": { "type": "string" } }
+          },
+          "blog_posts": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "id": { "type": "string", "format": "uuid" },
+              "title": { "type": "string" },
+              "status": { "type": "string" }
+            }
+          },
           "created_at": { "type": "string", "format": "date-time" }
         }
       },
-      "Meta": {
+      "KeywordGroup": {
         "type": "object",
         "properties": {
-          "total": { "type": "integer" },
-          "page": { "type": "integer" },
-          "limit": { "type": "integer" }
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string", "example": "SEO Tools" },
+          "website_id": { "type": "string", "format": "uuid" },
+          "created_at": { "type": "string", "format": "date-time" }
         }
       },
-      "Error": {
+      "ResearchJob": {
         "type": "object",
-        "properties": { "error": { "type": "string" } }
-      }
-    },
-    "responses": {
-      "Unauthorized": {
-        "description": "Missing or invalid API key",
-        "content": {
-          "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+        "properties": {
+          "id": { "type": "string" },
+          "status": { "type": "string", "enum": ["pending", "processing", "completed", "failed"] },
+          "result": { "type": "object", "additionalProperties": true, "nullable": true },
+          "error": { "type": "string", "nullable": true },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
         }
-      }
-    },
-    "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer"
+      },
+      "Campaign": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "keyword": { "type": "string", "example": "seo tools" },
+          "niche": { "type": "string", "example": "Digital Marketing" },
+          "status": { "type": "string", "example": "active" },
+          "language": { "type": "string", "example": "en" },
+          "target_domain": { "type": "string", "description": "The domain being researched for backlinks.", "example": "example.com" },
+          "is_public": { "type": "boolean", "description": "Whether campaign results are publicly shared." },
+          "public_share_token": { "type": "string", "nullable": true, "description": "Token used to construct the public share URL." },
+          "progress": { "type": "object", "nullable": true, "additionalProperties": true, "description": "Research job progress (phase and counts)." },
+          "general_strategies": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+          "websites": { "type": "object", "properties": { "url": { "type": "string", "format": "uri" } } },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Opportunity": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "url": { "type": "string", "format": "uri" },
+          "title": { "type": "string", "example": "Top SEO Tools Review" },
+          "strategy": { "type": "string", "example": "guest_post" },
+          "type": { "type": "string", "example": "blog" },
+          "relevance_score": { "type": "integer", "description": "AI-assessed relevance (0–100).", "example": 85 },
+          "domain_authority": { "type": "integer", "description": "Moz-style domain authority.", "example": 45 },
+          "domain_rating": { "type": "integer", "description": "Ahrefs-style domain rating.", "example": 52 },
+          "monthly_traffic": { "type": "string", "description": "Estimated monthly traffic for the page.", "example": "15K" },
+          "link_type": { "type": "string", "enum": ["dofollow", "nofollow", "unknown"] },
+          "niche_relevance": { "type": "string", "enum": ["high", "medium", "low"] },
+          "reasoning": { "type": "string", "description": "AI explanation of why this opportunity was surfaced." },
+          "tags": { "type": "array", "items": { "type": "string" } },
+          "status": { "type": "string", "example": "new" },
+          "contact_info": { "type": "object", "nullable": true, "additionalProperties": true },
+          "contact_email": { "type": "string", "format": "email", "nullable": true },
+          "backlink_campaigns": {
+            "type": "object",
+            "properties": {
+              "keyword": { "type": "string" },
+              "websites": { "type": "object", "properties": { "url": { "type": "string", "format": "uri" } } }
+            }
+          }
+        }
+      },
+      "Article": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "title": { "type": "string", "example": "Best SEO Tools in 2024" },
+          "slug": { "type": "string", "example": "best-seo-tools-2024" },
+          "status": { "type": "string", "enum": ["planned", "queued", "in-progress", "completed", "published"] },
+          "pipeline_status": { "type": "string", "example": "completed" },
+          "article_type": { "type": "string", "example": "standard" },
+          "meta_description": { "type": "string" },
+          "featured_image": { "type": "string", "format": "uri" },
+          "published_at": { "type": "string", "format": "date-time", "nullable": true },
+          "scheduled_publish_at": { "type": "string", "format": "date-time", "nullable": true },
+          "keywords": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "term": { "type": "string" },
+              "volume": { "type": "integer" },
+              "difficulty": { "type": "integer" }
+            }
+          },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "CalendarEvent": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "title": { "type": "string" },
+          "date": { "type": "string", "format": "date-time" },
+          "status": { "type": "string" },
+          "pipeline_status": { "type": "string" },
+          "article_type": { "type": "string" },
+          "volume": { "type": "integer" },
+          "difficulty": { "type": "integer" }
+        }
+      },
+      "AutomationSettings": {
+        "type": "object",
+        "properties": {
+          "auto_generate": { "type": "boolean", "description": "Auto-generate articles when planned." },
+          "auto_publish": { "type": "boolean", "description": "Auto-publish articles when generated." },
+          "auto_plan_blog_posts": { "type": "boolean", "description": "Auto-plan keywords into articles." },
+          "auto_plan_interval": { "type": "string", "description": "Planning frequency, e.g. `daily`, `mon_wed_fri`, `weekdays`." },
+          "auto_promote": { "type": "boolean", "description": "Auto-promote on social media." },
+          "auto_youtube": { "type": "boolean", "description": "Auto-generate YouTube videos." },
+          "track_bot_traffic": { "type": "boolean", "description": "Track AI bot traffic on the website." }
+        }
+      },
+      "BrandRef": {
+        "type": "object",
+        "required": ["name", "domain"],
+        "properties": {
+          "name": { "type": "string", "example": "MyBrand" },
+          "domain": { "type": "string", "example": "mybrand.com" }
+        }
+      },
+      "BrandRadarCampaign": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "prompt": { "type": "string", "example": "Best project management tools" },
+          "brands": { "type": "array", "items": { "$ref": "#/components/schemas/BrandRef" } },
+          "competitors": { "type": "array", "items": { "$ref": "#/components/schemas/BrandRef" } },
+          "frequency": { "type": "integer", "example": 7 },
+          "status": { "type": "string", "enum": ["active", "paused"] },
+          "languages": { "type": "array", "items": { "type": "string" } },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "BrandRadarResult": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "campaign_id": { "type": "string", "format": "uuid" },
+          "run_at": { "type": "string", "format": "date-time" },
+          "mentions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "brand": { "type": "string" },
+                "mentioned": { "type": "boolean" },
+                "rank": { "type": "integer" },
+                "context": { "type": "string" }
+              }
+            }
+          },
+          "competitor_mentions": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+          "visibility_score": { "type": "integer", "example": 85 }
+        }
+      },
+      "PromptResearchCampaign": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "custom_prompt": { "type": "string", "example": "What are the best SEO tools?" },
+          "frequency": { "type": "integer", "example": 7 },
+          "languages": { "type": "array", "items": { "type": "string" } },
+          "status": { "type": "string", "enum": ["active", "paused"] },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "VisibilityScore": {
+        "type": "object",
+        "properties": {
+          "brand_radar": {
+            "type": "object",
+            "properties": {
+              "campaigns_count": { "type": "integer" },
+              "latest_result": { "type": "object", "additionalProperties": true }
+            }
+          },
+          "prompt_research": {
+            "type": "object",
+            "properties": { "campaigns_count": { "type": "integer" } }
+          },
+          "authority": {
+            "type": "object",
+            "properties": {
+              "campaigns_count": { "type": "integer" },
+              "latest_score": { "type": "integer" }
+            }
+          },
+          "funnel": {
+            "type": "object",
+            "properties": { "campaigns_count": { "type": "integer" } }
+          }
+        }
+      },
+      "WebsiteSummary": {
+        "type": "object",
+        "properties": {
+          "unique_visitors": { "type": "integer", "example": 15420 },
+          "total_visits": { "type": "integer", "example": 23150 },
+          "pageviews": { "type": "integer", "example": 45000 },
+          "views_per_visit": { "type": "number", "example": 1.94 },
+          "avg_visit_duration": { "type": "number", "description": "Average visit duration in seconds.", "example": 185.5 },
+          "bounce_rate": { "type": "number", "description": "Bounce rate as a percentage.", "example": 42.3 }
+        }
+      },
+      "SearchConsoleDaily": {
+        "type": "object",
+        "properties": {
+          "date": { "type": "string", "format": "date" },
+          "clicks": { "type": "integer" },
+          "impressions": { "type": "integer" },
+          "ctr": { "type": "number" },
+          "position": { "type": "number" }
+        }
       }
     }
   }

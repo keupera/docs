@@ -1,0 +1,62 @@
+---
+title: "GitHub Copilot CLI"
+description: "Connect Keupera to the GitHub Copilot CLI as an HTTP MCP server."
+---
+
+The [GitHub Copilot CLI](https://docs.github.com/copilot) connects to the
+Keupera MCP server over **HTTP**. Authorize with OAuth (browser sign-in) or an
+API key.
+
+## Option A — OAuth (sign in)
+
+<Steps>
+  <Step title="Add the server">
+    Register an HTTP MCP server in your Copilot MCP config:
+    ```json
+    {
+      "mcpServers": {
+        "keupera": { "type": "http", "url": "https://mcp.keupera.com/mcp" }
+      }
+    }
+    ```
+  </Step>
+  <Step title="Authorize">
+    Run `/mcp` in the Copilot CLI to connect **keupera**, then authorize Keupera
+    in the browser when prompted.
+  </Step>
+</Steps>
+
+## Option B — API key
+
+```json
+{
+  "mcpServers": {
+    "keupera": {
+      "type": "http",
+      "url": "https://mcp.keupera.com/mcp",
+      "headers": { "Authorization": "Bearer sk_live_your_key" }
+    }
+  }
+}
+```
+
+Get your key from **Settings → API Keys** in the
+[dashboard](https://app.keupera.com).
+
+## Verify and use
+
+Run `/mcp` to confirm `keupera` is connected, then ask, for example:
+*"List my tracked keywords by opportunity and draft an article for the top one."*
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Server won't connect">
+    Confirm the config is valid JSON with `"type": "http"` and the exact URL
+    `https://mcp.keupera.com/mcp`. Re-run `/mcp` to reconnect.
+  </Accordion>
+  <Accordion title="401 or 'unauthorized' errors">
+    For OAuth, reconnect via `/mcp` and sign in again. For an API key, confirm
+    the `sk_live_…` value and that your plan includes API access.
+  </Accordion>
+</AccordionGroup>

@@ -1,72 +1,37 @@
 ---
-title: "Utilities"
-description: "Account info, CMS connectors, bot tracking, and webhook reference."
+title: "Account & Utilities"
+description: "Verify credentials, connect a CMS, and reference internal endpoints and webhooks."
+icon: "user"
 ---
 
-Miscellaneous endpoints under the `public-api` function. The `/me` endpoint skips the paid-tier check and works on any valid API key.
+Account-level and utility endpoints. `GET /me` and `POST /connect` have live playgrounds in the sidebar; the internal endpoints below are documented for reference only.
 
-**Base URL**: `https://app.keupera.com/api/v1`
+## What you can do
 
-## Verify credentials
+<CardGroup cols={2}>
+  <Card title="Verify credentials" icon="key">
+    `GET /me` returns basic profile info and works on any valid key — the fastest way to test authentication.
+  </Card>
+  <Card title="Connect a CMS" icon="plug">
+    `POST /connect` registers a Framer or WordPress integration against your API key.
+  </Card>
+</CardGroup>
 
-```http
-GET /me
-```
+<Tip>
+  `GET /me` skips the paid-tier check, so it succeeds on any valid API key regardless of subscription. Use it in health checks and setup wizards to confirm a key is live.
+</Tip>
 
-Returns basic profile info. Useful for verifying a key is valid regardless of subscription tier.
+## Internal endpoints
 
-### Response
+These endpoints exist on the API surface but are not intended for direct integration.
 
-```json
-{
-  "data": {
-    "id": "uuid",
-    "email": "you@example.com",
-    "full_name": "Jane Doe",
-    "avatar_url": "https://..."
-  }
-}
-```
-
-## Connect a CMS integration
-
-```http
-POST /connect
-```
-
-Used by the Framer plugin and WordPress connector to register a CMS integration against your API key.
-
-### Framer
-
-```json
-{ "type": "framer" }
-```
-
-### WordPress
-
-```json
-{
-  "type": "wordpress",
-  "site_url": "https://example.com",
-  "username": "admin",
-  "app_password": "xxxx xxxx xxxx xxxx"
-}
-```
-
-| Field | Required | Description |
-|-------|----------|-------------|
-| `type` | Yes | `framer` or `wordpress` |
-| `site_url` | WordPress only | Your WordPress site URL |
-| `username` | WordPress only | WordPress admin username |
-| `app_password` | WordPress only | WordPress application password |
-
-## Track bot hit (internal)
+### Track bot hit
 
 ```http
 POST /track-bot
 ```
 
-Public endpoint used by the Keupera in-page tracker script to record AI bot visits. **Not intended for direct integration.** Use the [Analytics bot-traffic endpoints](/api-reference/analytics#bot-traffic) to read the data.
+Used by the Keupera in-page tracker script to record AI bot visits. **Not intended for direct integration** — read the data via the [Analytics bot-traffic endpoints](/api-reference/analytics) instead.
 
 ## Webhooks
 

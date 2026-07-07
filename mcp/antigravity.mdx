@@ -1,0 +1,49 @@
+---
+title: "Antigravity"
+description: "Connect Keupera to Antigravity as an MCP server."
+---
+
+[Antigravity](https://antigravity.google) connects to the Keupera MCP server
+over HTTP. Authorize with OAuth (browser sign-in) or an API key.
+
+## Add the server
+
+<Steps>
+  <Step title="Open MCP settings">
+    Open the **Agent panel → MCP servers → Add server** — or edit the MCP config
+    directly:
+    ```json
+    {
+      "mcpServers": {
+        "keupera": { "serverUrl": "https://mcp.keupera.com/mcp" }
+      }
+    }
+    ```
+  </Step>
+  <Step title="Authorize">
+    Connect **keupera** and sign in to Keupera in the browser when prompted. To
+    use an API key instead, add `"headers": { "Authorization": "Bearer
+    sk_live_your_key" }`.
+  </Step>
+</Steps>
+
+Get your key from **Settings → API Keys** in the
+[dashboard](https://app.keupera.com).
+
+## Verify and use
+
+Confirm `keupera` is connected in the MCP servers panel, then ask, for example:
+*"List my tracked keywords by opportunity and draft an article for the top one."*
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Server won't connect">
+    Confirm the config uses `serverUrl` with the exact URL
+    `https://mcp.keupera.com/mcp`. Reopen the MCP servers panel to reconnect.
+  </Accordion>
+  <Accordion title="401 or 'unauthorized' errors">
+    For OAuth, reconnect and sign in again. For an API key, confirm the
+    `sk_live_…` value and that your plan includes API access.
+  </Accordion>
+</AccordionGroup>

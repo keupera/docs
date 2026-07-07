@@ -1,0 +1,64 @@
+---
+title: "Cursor"
+description: "Connect Keupera to the Cursor editor as an MCP server."
+---
+
+[Cursor](https://cursor.com) connects to the Keupera MCP server over HTTP.
+Authorize with OAuth (browser sign-in) or an API key.
+
+## Option A — OAuth (sign in)
+
+<Steps>
+  <Step title="Add the server">
+    Add Keupera to `~/.cursor/mcp.json` (global) or `.cursor/mcp.json`
+    (per-project):
+    ```json
+    {
+      "mcpServers": {
+        "keupera": { "url": "https://mcp.keupera.com/mcp" }
+      }
+    }
+    ```
+  </Step>
+  <Step title="Authorize">
+    Go to **Settings → MCP → Keupera → Login** and sign in to Keupera in the
+    browser.
+  </Step>
+</Steps>
+
+## Option B — API key
+
+```json
+{
+  "mcpServers": {
+    "keupera": {
+      "url": "https://mcp.keupera.com/mcp",
+      "headers": { "Authorization": "Bearer sk_live_your_key" }
+    }
+  }
+}
+```
+
+Get your key from **Settings → API Keys** in the
+[dashboard](https://app.keupera.com).
+
+## Verify and use
+
+In **Settings → MCP**, confirm `keupera` shows as connected, then ask, for
+example: *"List my tracked keywords by opportunity and draft an article for the
+top one."*
+
+[Cursor MCP docs →](https://docs.cursor.com/context/mcp)
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Server not listed">
+    Confirm `mcp.json` is valid JSON and the URL is exactly
+    `https://mcp.keupera.com/mcp`. Reopen Settings → MCP to reload.
+  </Accordion>
+  <Accordion title="401 or 'unauthorized' errors">
+    For OAuth, click **Login** again under Settings → MCP → Keupera. For an API
+    key, confirm the `sk_live_…` value and that your plan includes API access.
+  </Accordion>
+</AccordionGroup>

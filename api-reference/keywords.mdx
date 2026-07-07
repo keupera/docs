@@ -1,233 +1,41 @@
 ---
 title: "Keywords"
 description: "Research, enrich, and manage keywords and keyword groups."
+icon: "magnifying-glass"
 ---
 
-Manage keyword research programmatically: list, add, delete, star, bulk-update, trigger research, and manage groups.
+Manage keyword research programmatically — list, add, delete, star, bulk-update status, trigger AI-powered research, and organize keywords into groups. Every endpoint below has a live playground in the sidebar.
 
-**Base URL**: `https://app.keupera.com/api/v1`
+## What you can do
 
-## List keywords
+<CardGroup cols={2}>
+  <Card title="Manage keywords" icon="list-check">
+    List with filters, add in bulk (with optional enrichment), delete, star, and bulk-update status.
+  </Card>
+  <Card title="Run AI research" icon="wand-magic-sparkles">
+    Expand seed terms into ranked keyword ideas with DataForSEO enrichment.
+  </Card>
+  <Card title="Organize into groups" icon="folder-tree">
+    List keyword groups and assign keywords to them (groups are auto-created on add).
+  </Card>
+  <Card title="Enrich on demand" icon="database">
+    Pass `enrich: true` when adding keywords to auto-fill volume, difficulty, CPC, and intent.
+  </Card>
+</CardGroup>
 
-```http
-GET /keywords
-```
+## The research job flow
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `website_id` | UUID | API key's website | Target website |
-| `limit` | integer | `100` | Results per page |
-| `page` | integer | `1` | Page number |
-| `status` | string | — | Filter by status (`active`, `planned`, `ignored`) |
-| `group_id` | UUID | — | Filter by keyword group |
+`POST /keywords/research` is a **long-running** operation. It returns a `job_id` immediately with `202 Accepted` — poll `GET /keywords/research/{jobId}` until `status` is `completed` or `failed`.
 
-### Response
+<Steps>
+  <Step title="Start the job">
+    `POST /keywords/research` with your `seed_keywords`. You get back `{ "job_id", "status": "pending", "poll_url" }`.
+  </Step>
+  <Step title="Poll for completion">
+    `GET /keywords/research/{jobId}` returns `status` — one of `pending`, `processing`, `completed`, or `failed`. Results land in `result` when done.
+  </Step>
+</Steps>
 
-```json
-{
-  "data": [
-    {
-      "id": "uuid",
-      "term": "best seo tools",
-      "volume": 12000,
-      "difficulty": 45,
-      "cpc": 2.50,
-      "intent": "Commercial",
-      "opportunity": "High",
-      "status": "active",
-      "is_starred": false,
-      "funnel_stage": "consideration",
-      "language": "en",
-      "group_id": "uuid",
-      "keyword_groups": { "id": "uuid", "name": "SEO Tools" },
-      "blog_posts": { "id": "uuid", "title": "Best SEO Tools in 2024", "status": "published" },
-      "created_at": "2024-01-15T10:00:00Z"
-    }
-  ],
-  "meta": { "total": 150, "page": 1, "limit": 100 }
-}
-```
-
-## Add keywords
-
-```http
-POST /keywords
-```
-
-### Request body
-
-```json
-{
-  "website_id": "uuid",
-  "keywords": [
-    { "term": "seo tools", "keyword_group": "SEO" },
-    { "term": "keyword research", "volume": 5000, "difficulty": 30 }
-  ],
-  "enrich": true
-}
-```
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `keywords` | array | Yes | Array of keyword objects |
-| `keywords[].term` (or `keyword`) | string | Yes | The keyword term |
-| `keywords[].keyword_group` (or `group`) | string | No | Group name (auto-created if new) |
-| `keywords[].volume` | integer | No | Search volume (auto-filled if `enrich: true`) |
-| `keywords[].difficulty` | integer | No | Keyword difficulty |
-| `keywords[].cpc` | number | No | Cost per click |
-| `keywords[].intent` | string | No | Search intent |
-| `keywords[].opportunity` | string | No | Opportunity level (`High`, `Medium`, `Low`) |
-| `keywords[].funnel_stage` | string | No | Funnel stage (`awareness`, `consideration`, `decision`) |
-| `keywords[].language` | string | No | Language code |
-| `enrich` | boolean | No | Auto-enrich keywords with volume/difficulty data |
-
-### Response (201)
-
-```json
-{
-  "data": [{ "id": "uuid", "term": "seo tools", "volume": 12000 }],
-  "count": 2
-}
-```
-
-## Delete keywords
-
-```http
-DELETE /keywords
-```
-
-### Request body
-
-```json
-{
-  "website_id": "uuid",
-  "ids": ["uuid1", "uuid2"]
-}
-```
-
-### Response
-
-```json
-{ "success": true, "deleted": 2 }
-```
-
-## Toggle keyword star
-
-```http
-PATCH /keywords/:id/star
-```
-
-### Request body
-
-```json
-{ "is_starred": true }
-```
-
-### Response
-
-```json
-{ "success": true, "is_starred": true }
-```
-
-## Bulk update status
-
-```http
-PATCH /keywords/status
-```
-
-### Request body
-
-```json
-{
-  "ids": ["uuid1", "uuid2"],
-  "status": "planned"
-}
-```
-
-### Response
-
-```json
-{ "success": true, "updated": 2 }
-```
-
-## Trigger keyword research
-
-```http
-POST /keywords/research
-```
-
-Generates keyword ideas using AI + DataForSEO enrichment. **Long-running** — returns a job handle by default. Pass `"sync": true` to wait inline (not recommended; subject to gateway timeouts).
-
-### Request body
-
-```json
-{
-  "website_id": "uuid",
-  "seed_keywords": ["seo tools", "content marketing"],
-  "language": "en",
-  "country": "US",
-  "sync": false
-}
-```
-
-| Field | Type | Required | Description |
-|-------|------|----------|-----------|
-| `seed_keywords` | array | Yes | Seed terms to expand from |
-| `language` | string | No | Language code (e.g. `en`) |
-| `country` | string | No | Country code (e.g. `US`) |
-| `sync` | boolean | No | `true` to wait for inline result (not recommended) |
-
-### Response (`202 Accepted`)
-
-```json
-{
-  "data": {
-    "job_id": "abc-uuid",
-    "status": "pending",
-    "poll_url": "/keywords/research/abc-uuid"
-  }
-}
-```
-
-## Poll a research job
-
-```http
-GET /keywords/research/:jobId
-```
-
-### Response
-
-```json
-{
-  "data": {
-    "id": "abc-uuid",
-    "status": "completed",
-    "result": { "keywords": [ ] },
-    "error": null,
-    "created_at": "2024-01-15T10:00:00Z",
-    "updated_at": "2024-01-15T10:01:30Z"
-  }
-}
-```
-
-`status` is one of `pending`, `processing`, `completed`, or `failed`.
-
-## List keyword groups
-
-```http
-GET /keywords/groups
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `website_id` | UUID | Target website |
-
-### Response
-
-```json
-{
-  "data": [
-    { "id": "uuid", "name": "SEO Tools", "website_id": "uuid", "created_at": "2024-01-15T10:00:00Z" }
-  ]
-}
-```
+<Warning>
+  Avoid `sync: true` in production — it waits inline and is subject to gateway timeouts. Keyword research consumes crawl credits and returns `402` when your quota is exhausted.
+</Warning>

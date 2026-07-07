@@ -1,0 +1,69 @@
+---
+title: "Windsurf"
+description: "Connect Keupera to Windsurf via the mcp-remote bridge."
+---
+
+[Windsurf](https://windsurf.com) proxies HTTP MCP servers through the
+`mcp-remote` bridge, so it connects to the hosted Keupera server. Authorize with
+OAuth (browser sign-in) or an API key.
+
+<Note>
+  `mcp-remote` runs via `npx`, so you need Node.js installed. No global install
+  is required.
+</Note>
+
+## Option A — OAuth (sign in)
+
+<Steps>
+  <Step title="Add the server">
+    Edit `~/.codeium/windsurf/mcp_config.json`:
+    ```json
+    {
+      "mcpServers": {
+        "keupera": { "command": "npx", "args": ["-y", "mcp-remote", "https://mcp.keupera.com/mcp"] }
+      }
+    }
+    ```
+  </Step>
+  <Step title="Authorize">
+    Click **Refresh** in the MCP panel. On first connect, `mcp-remote` opens your
+    browser to sign in to Keupera and **Allow** access.
+  </Step>
+</Steps>
+
+## Option B — API key
+
+```json
+{
+  "mcpServers": {
+    "keupera": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://mcp.keupera.com/mcp", "--header", "Authorization: Bearer sk_live_your_key"]
+    }
+  }
+}
+```
+
+Get your key from **Settings → API Keys** in the
+[dashboard](https://app.keupera.com).
+
+## Verify and use
+
+Click **Refresh** in the MCP panel and confirm `keupera` is connected, then ask,
+for example: *"List my tracked keywords by opportunity and draft an article for
+the top one."*
+
+[Windsurf MCP docs →](https://docs.windsurf.com/windsurf/cascade/mcp)
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Server won't start">
+    Confirm Node.js is installed (`node --version`) and the JSON is valid, then
+    click **Refresh** in the MCP panel.
+  </Accordion>
+  <Accordion title="Browser sign-in doesn't open">
+    Clear the cached auth and retry: delete the `mcp-remote` cache in
+    `~/.mcp-auth` (or the path printed on startup), then click **Refresh**.
+  </Accordion>
+</AccordionGroup>

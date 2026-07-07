@@ -1,6 +1,6 @@
 ---
 title: "All clients"
-description: "Step-by-step setup for every MCP client — CLI agents, web chat clients and IDEs."
+description: "Step-by-step setup for every MCP client: CLI agents, web chat clients and IDEs."
 ---
 
 The Keupera MCP server works with any client that speaks **remote (Streamable
@@ -13,8 +13,8 @@ https://mcp.keupera.com/mcp
 
 <Note>
   On first connect, your client opens a browser to **sign in to Keupera**
-  (OAuth) — no key to copy. Prefer a key? Add
-  `Authorization: Bearer sk_live_…` — generate one under **Account → API Keys**
+  (OAuth), so there's no key to copy. Prefer a key? Add
+  `Authorization: Bearer sk_live_…` and generate one under **Account → API Keys**
   in the [dashboard](https://app.keupera.com).
 </Note>
 
@@ -28,14 +28,14 @@ https://mcp.keupera.com/mcp
         ```bash
         claude mcp add --transport http keupera https://mcp.keupera.com/mcp -s user
         ```
-        **2. Authenticate** — start Claude Code, run `/mcp`, select **keupera → Authenticate**, and Allow access in the browser.
+        **2. Authenticate:** start Claude Code, run `/mcp`, select **keupera → Authenticate**, and Allow access in the browser.
 
         Use an API key instead:
         ```bash
         claude mcp add --transport http keupera https://mcp.keupera.com/mcp \
           --header "Authorization: Bearer sk_live_your_key" -s user
         ```
-        [Claude Code MCP docs →](https://docs.claude.com/en/docs/claude-code/mcp)
+        [Full Claude Code guide →](/mcp/claude-code)
       </Accordion>
 
       <Accordion title="Codex (OpenAI)">
@@ -45,7 +45,7 @@ https://mcp.keupera.com/mcp
         command = "npx"
         args = ["-y", "mcp-remote", "https://mcp.keupera.com/mcp"]
         ```
-        Start Codex — `mcp-remote` opens the browser to authorize Keupera on first use.
+        Start Codex, and `mcp-remote` opens the browser to authorize Keupera on first use.
 
         Use an API key instead:
         ```toml
@@ -53,6 +53,7 @@ https://mcp.keupera.com/mcp
         command = "npx"
         args = ["-y", "mcp-remote", "https://mcp.keupera.com/mcp", "--header", "Authorization: Bearer sk_live_your_key"]
         ```
+        [Full Codex guide →](/mcp/codex)
       </Accordion>
 
       <Accordion title="Gemini CLI">
@@ -66,7 +67,9 @@ https://mcp.keupera.com/mcp
         ```
         Run `gemini`, then `/mcp` to confirm and sign in when prompted.
 
-        Use an API key instead — add `"headers": { "Authorization": "Bearer sk_live_your_key" }`.
+        Use an API key instead: add `"headers": { "Authorization": "Bearer sk_live_your_key" }`.
+
+        [Full Gemini CLI guide →](/mcp/gemini-cli)
       </Accordion>
 
       <Accordion title="GitHub Copilot CLI">
@@ -79,6 +82,8 @@ https://mcp.keupera.com/mcp
         }
         ```
         Run `/mcp` to connect **keupera** and authorize in the browser.
+
+        [Full GitHub Copilot CLI guide →](/mcp/copilot-cli)
       </Accordion>
 
       <Accordion title="OpenCode">
@@ -92,7 +97,7 @@ https://mcp.keupera.com/mcp
         }
         ```
         Start OpenCode and sign in when prompted. For an API key, add `"headers": { "Authorization": "Bearer sk_live_your_key" }`.
-        [OpenCode MCP docs →](https://opencode.ai/docs/mcp-servers)
+        [Full OpenCode guide →](/mcp/opencode)
       </Accordion>
 
       <Accordion title="Factory (Droid)">
@@ -105,6 +110,8 @@ https://mcp.keupera.com/mcp
         }
         ```
         Run `droid`, open the MCP panel, connect **keupera**, and sign in.
+
+        [Full Factory (Droid) guide →](/mcp/factory)
       </Accordion>
     </AccordionGroup>
   </Tab>
@@ -117,10 +124,12 @@ https://mcp.keupera.com/mcp
           <Step title="Enter the server">Name it `Keupera`, URL `https://mcp.keupera.com/mcp`, click **Add**.</Step>
           <Step title="Connect & authorize">Click **Connect**, sign in to Keupera and **Allow**. Works the same on web and desktop.</Step>
         </Steps>
+
+        [Full Claude.ai & Desktop guide →](/mcp/claude)
       </Accordion>
 
       <Accordion title="ChatGPT">
-        **One click** — add the Keupera ChatGPT App to render interactive dashboards in chat.
+        **One click:** add the Keupera ChatGPT App to render interactive dashboards in chat.
 
         **Or add a custom connector** (ChatGPT Plus / Pro / Business):
         <Steps>
@@ -128,6 +137,8 @@ https://mcp.keupera.com/mcp
           <Step title="Add the connector">Connectors → **Create**, name it `Keupera`, URL `https://mcp.keupera.com/mcp`.</Step>
           <Step title="Sign in">Authorize Keupera in the browser, then enable it in your chat's tools.</Step>
         </Steps>
+
+        [Full ChatGPT guide →](/mcp/chatgpt)
       </Accordion>
 
       <Accordion title="Goose">
@@ -136,7 +147,7 @@ https://mcp.keupera.com/mcp
           <Step title="Choose Streamable HTTP">Pick **Remote Extension (Streamable HTTP)**, endpoint `https://mcp.keupera.com/mcp`.</Step>
           <Step title="Authorize">Sign in to Keupera in the browser when prompted.</Step>
         </Steps>
-        [Goose extensions docs →](https://block.github.io/goose/docs/getting-started/using-extensions)
+        [Full Goose guide →](/mcp/goose)
       </Accordion>
     </AccordionGroup>
   </Tab>
@@ -153,7 +164,7 @@ https://mcp.keupera.com/mcp
         }
         ```
         Then **Settings → MCP → Keupera → Login** and sign in. For an API key, add `"headers": { "Authorization": "Bearer sk_live_your_key" }`.
-        [Cursor MCP docs →](https://docs.cursor.com/context/mcp)
+        [Full Cursor guide →](/mcp/cursor)
       </Accordion>
 
       <Accordion title="VS Code (GitHub Copilot)">
@@ -170,6 +181,8 @@ https://mcp.keupera.com/mcp
         code --add-mcp '{"name":"keupera","type":"http","url":"https://mcp.keupera.com/mcp"}'
         ```
         Start **keupera** in the Copilot Chat MCP view and sign in.
+
+        [Full VS Code guide →](/mcp/vscode)
       </Accordion>
 
       <Accordion title="Antigravity">
@@ -182,6 +195,8 @@ https://mcp.keupera.com/mcp
         }
         ```
         Connect **keupera** and sign in when prompted.
+
+        [Full Antigravity guide →](/mcp/antigravity)
       </Accordion>
 
       <Accordion title="Kiro">
@@ -194,7 +209,7 @@ https://mcp.keupera.com/mcp
         }
         ```
         Kiro reloads MCP servers automatically; `mcp-remote` opens the browser to sign in.
-        [Kiro MCP docs →](https://kiro.dev/docs/mcp)
+        [Full Kiro guide →](/mcp/kiro)
       </Accordion>
 
       <Accordion title="Windsurf">
@@ -207,14 +222,14 @@ https://mcp.keupera.com/mcp
         }
         ```
         Click **Refresh** in the MCP panel and sign in to Keupera on first connect.
-        [Windsurf MCP docs →](https://docs.windsurf.com/windsurf/cascade/mcp)
+        [Full Windsurf guide →](/mcp/windsurf)
       </Accordion>
     </AccordionGroup>
   </Tab>
 </Tabs>
 
 <Note>
-  Not listed? Any client that supports remote HTTP MCP works — add a server with
+  Not listed? Any client that supports remote HTTP MCP works. Add a server with
   URL `https://mcp.keupera.com/mcp`. For stdio-only clients, bridge with
   `npx -y mcp-remote https://mcp.keupera.com/mcp`.
 </Note>

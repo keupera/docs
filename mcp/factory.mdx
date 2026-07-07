@@ -1,0 +1,61 @@
+---
+title: "Factory (Droid)"
+description: "Connect Keupera to Factory's Droid agent as an HTTP MCP server."
+---
+
+[Factory](https://factory.ai) connects its **Droid** agent to the Keupera MCP
+server over **HTTP**. Authorize with OAuth (browser sign-in) or an API key.
+
+## Option A — OAuth (sign in)
+
+<Steps>
+  <Step title="Add the server">
+    Add an HTTP MCP server to `~/.factory/mcp.json`:
+    ```json
+    {
+      "mcpServers": {
+        "keupera": { "type": "http", "url": "https://mcp.keupera.com/mcp" }
+      }
+    }
+    ```
+  </Step>
+  <Step title="Authorize">
+    Run `droid`, open the MCP panel, connect **keupera**, and sign in to Keupera
+    in the browser when prompted.
+  </Step>
+</Steps>
+
+## Option B — API key
+
+```json
+{
+  "mcpServers": {
+    "keupera": {
+      "type": "http",
+      "url": "https://mcp.keupera.com/mcp",
+      "headers": { "Authorization": "Bearer sk_live_your_key" }
+    }
+  }
+}
+```
+
+Get your key from **Settings → API Keys** in the
+[dashboard](https://app.keupera.com).
+
+## Verify and use
+
+Open the MCP panel and confirm `keupera` is connected, then ask, for example:
+*"List my tracked keywords by opportunity and draft an article for the top one."*
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Server won't connect">
+    Confirm `~/.factory/mcp.json` is valid JSON with `"type": "http"` and the
+    exact URL. Reopen the MCP panel to reconnect.
+  </Accordion>
+  <Accordion title="401 or 'unauthorized' errors">
+    For OAuth, reconnect and sign in again. For an API key, confirm the
+    `sk_live_…` value and that your plan includes API access.
+  </Accordion>
+</AccordionGroup>

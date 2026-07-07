@@ -1,0 +1,60 @@
+---
+title: "Codex (OpenAI)"
+description: "Connect Keupera to OpenAI Codex via the mcp-remote bridge."
+---
+
+[Codex](https://openai.com/codex) speaks **stdio** MCP, so it connects to the
+hosted Keupera server through the `mcp-remote` bridge. Authorize with OAuth
+(browser sign-in) or an API key.
+
+<Note>
+  `mcp-remote` runs via `npx`, so you need Node.js installed. No global install
+  is required.
+</Note>
+
+## Option A — OAuth (sign in)
+
+<Steps>
+  <Step title="Add the server">
+    Add Keupera to `~/.codex/config.toml`:
+    ```toml
+    [mcp_servers.keupera]
+    command = "npx"
+    args = ["-y", "mcp-remote", "https://mcp.keupera.com/mcp"]
+    ```
+  </Step>
+  <Step title="Authorize">
+    Start Codex. On first use, `mcp-remote` opens your browser to sign in to
+    Keupera and **Allow** access. The token is cached and refreshed
+    automatically.
+  </Step>
+</Steps>
+
+## Option B — API key
+
+```toml
+[mcp_servers.keupera]
+command = "npx"
+args = ["-y", "mcp-remote", "https://mcp.keupera.com/mcp", "--header", "Authorization: Bearer sk_live_your_key"]
+```
+
+Get your key from **Settings → API Keys** in the
+[dashboard](https://app.keupera.com).
+
+## Verify and use
+
+Restart Codex and confirm the `keupera` tools are listed, then ask, for example:
+*"List my tracked keywords by opportunity and draft an article for the top one."*
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Tools don't appear / server won't start">
+    Confirm Node.js is installed (`node --version`) and that the TOML block is
+    valid. Restart Codex to reload the config.
+  </Accordion>
+  <Accordion title="Browser sign-in doesn't open">
+    Clear the cached auth and retry: delete the `mcp-remote` cache in
+    `~/.mcp-auth` (or the path printed on startup), then restart Codex.
+  </Accordion>
+</AccordionGroup>

@@ -84,6 +84,7 @@
       },
       {
         "tab": "API reference",
+        "openapi": "api-reference/openapi.json",
         "groups": [
           {
             "group": "Overview",
@@ -92,14 +93,91 @@
             ]
           },
           {
-            "group": "API Modules",
+            "group": "Keywords",
             "pages": [
               "api-reference/keywords",
+              "GET /keywords",
+              "POST /keywords",
+              "DELETE /keywords",
+              "PATCH /keywords/{id}/star",
+              "PATCH /keywords/status",
+              "POST /keywords/research",
+              "GET /keywords/research/{jobId}",
+              "GET /keywords/groups"
+            ]
+          },
+          {
+            "group": "Backlinks",
+            "pages": [
               "api-reference/backlinks",
+              "GET /campaigns",
+              "POST /campaigns",
+              "GET /campaigns/{id}",
+              "GET /campaigns/{id}/opportunities",
+              "GET /campaigns/{id}/recommendations",
+              "GET /opportunities/{id}",
+              "PATCH /opportunities/{id}",
+              "POST /opportunities/{id}/generate-email",
+              "POST /opportunities/{id}/send-email"
+            ]
+          },
+          {
+            "group": "Content",
+            "pages": [
               "api-reference/content",
+              "GET /articles",
+              "POST /articles",
+              "GET /articles/{id}",
+              "PATCH /articles/{id}",
+              "DELETE /articles/{id}",
+              "POST /articles/{id}/generate",
+              "GET /articles/calendar",
+              "GET /automation",
+              "PATCH /automation",
+              "GET /blog-posts",
+              "GET /blog-posts/{id}"
+            ]
+          },
+          {
+            "group": "AI Visibility",
+            "pages": [
               "api-reference/ai-visibility",
+              "GET /brand-radar/campaigns",
+              "POST /brand-radar/campaigns",
+              "PATCH /brand-radar/campaigns/{id}",
+              "DELETE /brand-radar/campaigns/{id}",
+              "GET /brand-radar/campaigns/{id}/results",
+              "GET /prompt-research/campaigns",
+              "POST /prompt-research/campaigns",
+              "GET /prompt-research/campaigns/{id}",
+              "GET /score"
+            ]
+          },
+          {
+            "group": "Analytics",
+            "pages": [
               "api-reference/analytics",
-              "api-reference/utilities"
+              "GET /website/summary",
+              "GET /website/daily",
+              "GET /website/top-pages",
+              "GET /website/referrers",
+              "GET /website/devices",
+              "GET /website/browsers",
+              "GET /website/geo",
+              "GET /search-console/daily",
+              "GET /search-console/keywords",
+              "GET /search-console/pages",
+              "GET /bot-traffic/summary",
+              "GET /bot-traffic/daily",
+              "GET /bot-traffic/top-pages"
+            ]
+          },
+          {
+            "group": "Account & Utilities",
+            "pages": [
+              "api-reference/utilities",
+              "GET /me",
+              "POST /connect"
             ]
           }
         ]
@@ -117,9 +195,35 @@
             "group": "Connect",
             "pages": [
               "mcp/clients",
-              "mcp/claude",
-              "mcp/claude-code",
-              "mcp/other-clients"
+              {
+                "group": "AI agent CLIs",
+                "pages": [
+                  "mcp/claude-code",
+                  "mcp/codex",
+                  "mcp/gemini-cli",
+                  "mcp/copilot-cli",
+                  "mcp/opencode",
+                  "mcp/factory"
+                ]
+              },
+              {
+                "group": "Web clients",
+                "pages": [
+                  "mcp/claude",
+                  "mcp/chatgpt",
+                  "mcp/goose"
+                ]
+              },
+              {
+                "group": "IDEs",
+                "pages": [
+                  "mcp/cursor",
+                  "mcp/vscode",
+                  "mcp/antigravity",
+                  "mcp/kiro",
+                  "mcp/windsurf"
+                ]
+              }
             ]
           },
           {

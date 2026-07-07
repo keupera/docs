@@ -1,0 +1,68 @@
+---
+title: "Kiro"
+description: "Connect Keupera to Kiro via the mcp-remote bridge."
+---
+
+[Kiro](https://kiro.dev) connects to the hosted Keupera MCP server through the
+`mcp-remote` bridge. Authorize with OAuth (browser sign-in) or an API key.
+
+<Note>
+  `mcp-remote` runs via `npx`, so you need Node.js installed. No global install
+  is required.
+</Note>
+
+## Option A — OAuth (sign in)
+
+<Steps>
+  <Step title="Add the server">
+    Edit `.kiro/settings/mcp.json` (workspace) or `~/.kiro/settings/mcp.json`
+    (user):
+    ```json
+    {
+      "mcpServers": {
+        "keupera": { "command": "npx", "args": ["-y", "mcp-remote", "https://mcp.keupera.com/mcp"] }
+      }
+    }
+    ```
+  </Step>
+  <Step title="Authorize">
+    Kiro reloads MCP servers automatically. On first connect, `mcp-remote` opens
+    your browser to sign in to Keupera and **Allow** access.
+  </Step>
+</Steps>
+
+## Option B — API key
+
+```json
+{
+  "mcpServers": {
+    "keupera": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://mcp.keupera.com/mcp", "--header", "Authorization: Bearer sk_live_your_key"]
+    }
+  }
+}
+```
+
+Get your key from **Settings → API Keys** in the
+[dashboard](https://app.keupera.com).
+
+## Verify and use
+
+Confirm `keupera` is connected in Kiro's MCP view, then ask, for example:
+*"Show my top keyword opportunities and outline an article for the best one."*
+
+[Kiro MCP docs →](https://kiro.dev/docs/mcp)
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Server won't start">
+    Confirm Node.js is installed (`node --version`) and the JSON is valid. Kiro
+    reloads automatically, but you can restart it to force a reload.
+  </Accordion>
+  <Accordion title="Browser sign-in doesn't open">
+    Clear the cached auth and retry: delete the `mcp-remote` cache in
+    `~/.mcp-auth` (or the path printed on startup), then reload the server.
+  </Accordion>
+</AccordionGroup>

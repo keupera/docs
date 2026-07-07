@@ -1,25 +1,38 @@
 ---
 title: "API Overview"
 description: "Base URL, authentication, pagination, and error handling for the Keupera Public API."
+icon: "book-open"
 ---
 
-The **Keupera Public API** gives you programmatic access to every major platform module: Keyword Research, Backlink Research, Content Management, AI Visibility, and Analytics.
+The **Keupera Public API** gives you programmatic access to every major platform module — Keyword Research, Backlinks, Content, AI Visibility, and Analytics. Every endpoint on the left has a **live playground**: add your API key and send real requests straight from these docs.
+
+<CardGroup cols={3}>
+  <Card title="Keywords" icon="magnifying-glass" href="/api-reference/keywords">
+    Research, enrich, star, and group keywords.
+  </Card>
+  <Card title="Backlinks" icon="link" href="/api-reference/backlinks">
+    Run campaigns and generate outreach.
+  </Card>
+  <Card title="Content" icon="pen-nib" href="/api-reference/content">
+    Plan, generate, and publish articles.
+  </Card>
+  <Card title="AI Visibility" icon="robot" href="/api-reference/ai-visibility">
+    Track your brand across LLM answers.
+  </Card>
+  <Card title="Analytics" icon="chart-line" href="/api-reference/analytics">
+    Traffic, Search Console, and bot data.
+  </Card>
+  <Card title="Account" icon="user" href="/api-reference/utilities">
+    Verify keys and connect a CMS.
+  </Card>
+</CardGroup>
 
 ## Base URL
 
-```
+All resources are served under a single versioned prefix:
+
+```bash
 https://app.keupera.com/api/v1
-```
-
-All resources are available directly under this prefix, for example:
-
-```http
-GET https://app.keupera.com/api/v1/keywords
-GET https://app.keupera.com/api/v1/campaigns
-GET https://app.keupera.com/api/v1/articles
-GET https://app.keupera.com/api/v1/brand-radar/campaigns
-GET https://app.keupera.com/api/v1/website/summary
-GET https://app.keupera.com/api/v1/me
 ```
 
 ## Authentication
@@ -30,18 +43,63 @@ Every request must include your API key as a Bearer token:
 Authorization: Bearer YOUR_KEUPERA_API_KEY
 ```
 
-Generate keys from **Account → API Keys** in your [Keupera dashboard](https://app.keupera.com).
+Generate keys from **Account → API Keys** in your [Keupera dashboard](https://app.keupera.com). Each key:
 
-Each key:
 - Belongs to a single user and is bound to **one website by default** (configurable in the dashboard).
 - Requires a paid subscription tier with API access enabled.
-- Only sees websites within your organisation(s).
+- Only sees websites within your organization(s).
 
 <Warning>
-  Your subscription plan must include Public API access. Requests from plans without API entitlement return `403 Forbidden`.
+  Your subscription plan must include Public API access. Requests from plans without API entitlement return `403 Forbidden`. Never ship a key in a browser — always proxy requests through your own backend.
 </Warning>
 
-### Scoping to a specific website
+## Make your first request
+
+<Steps>
+  <Step title="Grab your API key">
+    Open **Account → API Keys** in the [dashboard](https://app.keupera.com) and copy a key.
+  </Step>
+  <Step title="Verify it works">
+    Call `GET /me` — it works on any valid key regardless of subscription tier, so it's the fastest way to confirm authentication.
+
+    <CodeGroup>
+
+    ```bash cURL
+    curl https://app.keupera.com/api/v1/me \
+      -H "Authorization: Bearer YOUR_KEUPERA_API_KEY"
+    ```
+
+    ```js Node.js
+    const res = await fetch("https://app.keupera.com/api/v1/me", {
+      headers: { Authorization: `Bearer ${process.env.KEUPERA_API_KEY}` },
+    });
+    const { data } = await res.json();
+    console.log(data.email);
+    ```
+
+    ```python Python
+    import os, requests
+
+    res = requests.get(
+        "https://app.keupera.com/api/v1/me",
+        headers={"Authorization": f"Bearer {os.environ['KEUPERA_API_KEY']}"},
+    )
+    print(res.json()["data"]["email"])
+    ```
+
+    </CodeGroup>
+  </Step>
+  <Step title="Fetch some data">
+    List your keywords. Use the **API Explorer** on any endpoint page to try it live and copy the generated code.
+
+    ```bash
+    curl "https://app.keupera.com/api/v1/keywords?limit=10" \
+      -H "Authorization: Bearer YOUR_KEUPERA_API_KEY"
+    ```
+  </Step>
+</Steps>
+
+## Scoping to a specific website
 
 If your key is bound to a website, every request defaults to that website. To target a different website you own, pass `website_id` as a query parameter:
 
@@ -49,27 +107,35 @@ If your key is bound to a website, every request defaults to that website. To ta
 GET /api/v1/keywords?website_id=<uuid>
 ```
 
-The website must belong to one of your organisations, otherwise the API returns `403`.
+The website must belong to one of your organizations, otherwise the API returns `403`.
 
-## Common query parameters
+## Common parameters
 
-Most endpoints accept:
+Most list endpoints accept pagination, and analytics endpoints accept a date range.
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `website_id` | UUID | API key's website | Override the target website |
-| `limit` | integer | varies per endpoint | Number of results to return |
-| `page` | integer | `1` | Page number for paginated endpoints |
+<ParamField query="website_id" type="uuid">
+  Override the target website. Defaults to the API key's website.
+</ParamField>
 
-## Date range parameters
+<ParamField query="limit" type="integer">
+  Number of results to return. Default varies per endpoint.
+</ParamField>
 
-Analytics and Search Console endpoints accept date ranges:
+<ParamField query="page" type="integer" default="1">
+  Page number for paginated endpoints.
+</ParamField>
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `range` | string | `30d` | Preset: `7d`, `30d`, `90d` |
-| `from` | string | — | Start date (`YYYY-MM-DD`) |
-| `to` | string | — | End date (`YYYY-MM-DD`) |
+<ParamField query="range" type="string" default="30d">
+  Analytics only. Preset date range — one of `7d`, `30d`, `90d`.
+</ParamField>
+
+<ParamField query="from" type="string">
+  Analytics only. Start date (`YYYY-MM-DD`).
+</ParamField>
+
+<ParamField query="to" type="string">
+  Analytics only. End date (`YYYY-MM-DD`).
+</ParamField>
 
 <Note>
   When both `from` and `to` are provided, `range` is ignored.
@@ -77,11 +143,11 @@ Analytics and Search Console endpoints accept date ranges:
 
 ## Response format
 
-All responses are JSON and follow a consistent shape.
+All responses are JSON and follow a consistent envelope.
 
-### Success
+<CodeGroup>
 
-```json
+```json Success
 {
   "data": [ /* ... */ ],
   "meta": {
@@ -92,11 +158,13 @@ All responses are JSON and follow a consistent shape.
 }
 ```
 
-### Error
-
-```json
+```json Error
 { "error": "Descriptive error message" }
 ```
+
+</CodeGroup>
+
+List endpoints wrap results in `data` and add a `meta` object for pagination. Single-resource endpoints return the object directly under `data`.
 
 ## HTTP status codes
 
@@ -104,6 +172,7 @@ All responses are JSON and follow a consistent shape.
 |------|---------|
 | `200` | Success |
 | `201` | Created |
+| `202` | Accepted — long-running job queued |
 | `400` | Bad request — missing or invalid parameters |
 | `401` | Unauthorized — missing or invalid API key |
 | `402` | Usage limit reached — crawl credits, AI credits, etc. exhausted |
@@ -113,17 +182,36 @@ All responses are JSON and follow a consistent shape.
 
 ## Rate limits & usage
 
-Each API call counts against your plan's limits the same way in-app actions do:
+Each API call counts against your plan's limits the same way in-app actions do. When a limit is reached the API responds with `402 Payment Required`. Enable metered billing in **Account → Billing → Usage** to allow overage.
 
 | Resource | Routes that consume it |
 |---|---|
-| `keyword_research` (10 crawl credits) | `POST /keywords/research`, automatic enrichment in `POST /keywords` |
-| `backlink_research` (20 crawl credits) | `POST /campaigns` (backlinks) |
+| `keyword_research` (10 crawl credits) | `POST /keywords/research`, enrichment in `POST /keywords` |
+| `backlink_research` (20 crawl credits) | `POST /campaigns` |
 | `ai_credits` (per-token) | `POST /opportunities/:id/generate-email`, `POST /articles`, `POST /articles/:id/generate` |
 | `crawl_credits` | Enrichment, GSC syncs |
 
-When a limit is reached the API responds with `402 Payment Required`. Enable metered billing in **Account → Billing → Usage** to allow overage.
+## Handling errors
+
+<AccordionGroup>
+  <Accordion title="401 — Invalid or missing API key" icon="key">
+    Confirm the `Authorization: Bearer <key>` header is present and the key is active. Test with `GET /me`, which bypasses the paid-tier check.
+  </Accordion>
+  <Accordion title="402 — Usage limit reached" icon="credit-card">
+    You've exhausted a credit bucket (keyword research, backlink research, or AI credits). Enable metered billing under **Account → Billing → Usage** to allow overage, or wait for the next cycle.
+  </Accordion>
+  <Accordion title="403 — Forbidden" icon="ban">
+    Either your plan doesn't include Public API access, the key is inactive, or the `website_id` you passed isn't in one of your organizations.
+  </Accordion>
+  <Accordion title="Long-running jobs (202)" icon="clock">
+    `POST /keywords/research` returns a `job_id`. Poll `GET /keywords/research/{jobId}` until `status` is `completed` or `failed`. Avoid `sync: true` in production — it's subject to gateway timeouts.
+  </Accordion>
+</AccordionGroup>
 
 ## CORS
 
-All endpoints respond with `Access-Control-Allow-Origin: *` so they can be called from any origin — but never ship a key in a browser; always proxy requests through your own backend.
+All endpoints respond with `Access-Control-Allow-Origin: *`, so they can be called from any origin — but never ship a key in a browser. Always proxy requests through your own backend.
+
+## Prefer natural language?
+
+Connect the [Keupera MCP Server](/mcp/introduction) to run these same operations from Claude, Cursor, or any MCP-compatible client without writing HTTP calls yourself.
