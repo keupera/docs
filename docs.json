@@ -116,6 +116,7 @@
           {
             "group": "Connect",
             "pages": [
+              "mcp/clients",
               "mcp/claude",
               "mcp/claude-code",
               "mcp/other-clients"
